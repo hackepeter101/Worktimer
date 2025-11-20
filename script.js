@@ -61,12 +61,13 @@
   /* ===== THEME SYSTEM v2 (no presets, per-theme Bing, edit) ===== */
   function loadThemeStore() {
     try {
-      return (
-        JSON.parse(localStorage.getItem(THEME_STORE_KEY)) || {
-          themes: [],
-        }
-      );
-    } catch {
+      const store = JSON.parse(localStorage.getItem(THEME_STORE_KEY));
+      if (store && Array.isArray(store.themes)) {
+        return store;
+      }
+      return { themes: [] };
+    } catch (e) {
+      console.warn("[Theme] Failed to load theme store:", e);
       return { themes: [] };
     }
   }
@@ -123,9 +124,16 @@
   }
 
   function getDayOfYear(d) {
-    const a = midnightOf(d),
-      b = new Date(d.getFullYear(), 0, 1);
-    return Math.floor((a - b) / 86400000) + 1;
+    try {
+      const a = midnightOf(d),
+        b = new Date(d.getFullYear(), 0, 1);
+      const dayNum = Math.floor((a - b) / 86400000) + 1;
+      // Validate the result is reasonable (1-366)
+      return Math.max(1, Math.min(366, dayNum));
+    } catch (e) {
+      console.error("[Date] Failed to calculate day of year:", e);
+      return 1; // Fallback to day 1
+    }
   }
 
   /* === CORS-sichere Bing-Abfrage === */
@@ -475,6 +483,11 @@
    * @param {number} brightness - Average brightness (0-255)
    */
   function adjustTextColors(brightness) {
+    // Validate brightness value
+    if (typeof brightness !== 'number' || !isFinite(brightness)) {
+      brightness = 128; // Default to mid-brightness
+    }
+    
     const root = document.documentElement;
     
     // Threshold for determining if background is light or dark
@@ -498,48 +511,55 @@
 
   // applyTheme (async wegen Bing)
   async function applyTheme(key = loadTheme(), now = new Date()) {
-    const theme = key ? getThemeByKey(key) : null;
-    if (!theme) return;
-
-    const root = document.documentElement;
-    const body = document.body;
-    const p = theme.palette || {};
-
-    const set = (k, v) =>
-      v != null
-        ? root.style.setProperty(`--${k}`, v)
-        : root.style.removeProperty(`--${k}`);
-    set("bg", p.bg);
-    set("fg", p.fg);
-    set("muted", p.muted);
-    set("card", p.card);
-    set("accent", p.accent);
-    set("accent-2", p["accent-2"]);
-    set("danger", p.danger);
-
-    body.style.backgroundColor = p.bg || "";
-    body.style.color = p.fg || "";
-
-    // NEU/bleibt: Bing oder eigene Liste
-    let url = null;
-    if (theme.source === "bing") {
-      url = await fetchBingImage(theme.bingMarket || "de-DE");
-    } else {
-      url = selectDailyBg(theme, now);
-    }
-    body.style.backgroundImage = url ? `url("${url}")` : "";
-    body.style.backgroundSize = "cover";
-    body.style.backgroundPosition = "center";
-    body.style.backgroundRepeat = "no-repeat";
-    
-    // Auto-adjust text color based on background image brightness
-    if (url && (theme.source === "bing" || theme.bgDaily || theme.bgImage)) {
-      try {
-        const brightness = await getImageBrightness(url);
-        adjustTextColors(brightness);
-      } catch (error) {
-        console.warn("[Theme] Failed to adjust text colors:", error);
+    try {
+      const theme = key ? getThemeByKey(key) : null;
+      if (!theme) {
+        console.warn("[Theme] Theme not found:", key);
+        return;
       }
+
+      const root = document.documentElement;
+      const body = document.body;
+      const p = theme.palette || {};
+
+      const set = (k, v) =>
+        v != null
+          ? root.style.setProperty(`--${k}`, v)
+          : root.style.removeProperty(`--${k}`);
+      set("bg", p.bg);
+      set("fg", p.fg);
+      set("muted", p.muted);
+      set("card", p.card);
+      set("accent", p.accent);
+      set("accent-2", p["accent-2"]);
+      set("danger", p.danger);
+
+      body.style.backgroundColor = p.bg || "";
+      body.style.color = p.fg || "";
+
+      // NEU/bleibt: Bing oder eigene Liste
+      let url = null;
+      if (theme.source === "bing") {
+        url = await fetchBingImage(theme.bingMarket || "de-DE");
+      } else {
+        url = selectDailyBg(theme, now);
+      }
+      body.style.backgroundImage = url ? `url("${url}")` : "";
+      body.style.backgroundSize = "cover";
+      body.style.backgroundPosition = "center";
+      body.style.backgroundRepeat = "no-repeat";
+      
+      // Auto-adjust text color based on background image brightness
+      if (url && (theme.source === "bing" || theme.bgDaily || theme.bgImage)) {
+        try {
+          const brightness = await getImageBrightness(url);
+          adjustTextColors(brightness);
+        } catch (error) {
+          console.warn("[Theme] Failed to adjust text colors:", error);
+        }
+      }
+    } catch (error) {
+      console.error("[Theme] Failed to apply theme:", error);
     }
   }
 
@@ -564,14 +584,23 @@
 
   // Auto-Name: "Theme #N"
   function nextThemeName() {
-    const nums = themeStore.themes
-      .map((t) => {
-        const m = /^Theme\s*#?\s*(\d+)$/i.exec(t.name || "");
-        return m ? parseInt(m[1], 10) : null;
-      })
-      .filter((n) => Number.isFinite(n));
-    const next = nums.length ? Math.max(...nums) + 1 : 1;
-    return `Theme #${next}`;
+    try {
+      if (!Array.isArray(themeStore.themes)) {
+        return "Theme #1";
+      }
+      
+      const nums = themeStore.themes
+        .map((t) => {
+          const m = /^Theme\s*#?\s*(\d+)$/i.exec(t.name || "");
+          return m ? parseInt(m[1], 10) : null;
+        })
+        .filter((n) => Number.isFinite(n));
+      const next = nums.length ? Math.max(...nums) + 1 : 1;
+      return `Theme #${next}`;
+    } catch (e) {
+      console.error("[Theme] Failed to generate next theme name:", e);
+      return "Theme #1";
+    }
   }
   let themeNameAutofilled = false;
   function fillDefaultThemeName(force = false) {
@@ -650,6 +679,7 @@
     }
   }
   function updateThemeSelection() {
+    if (!themeGrid) return;
     const current = loadTheme();
     $$(".theme-chip", themeGrid).forEach((chip) => {
       const sel = chip.dataset.theme === current;
@@ -663,10 +693,14 @@
       .toLowerCase()
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-_]/g, "");
-    const unique = themeStore.themes.some((t) => t.key === base);
+    
+    // Ensure we have a valid base name
+    const safeName = base || "theme";
+    
+    const unique = themeStore.themes.some((t) => t.key === safeName);
     const key = unique
-      ? `${base}-${crypto.randomUUID().slice(0, 6)}`
-      : base;
+      ? `${safeName}-${crypto.randomUUID().slice(0, 6)}`
+      : safeName;
 
     let bgImages = [];
     if (Array.isArray(input.bgImages))
@@ -959,13 +993,19 @@
   ];
   function loadRules() {
     try {
-      const r =
-        JSON.parse(localStorage.getItem(LS_KEY_RULES)) || defaultRules;
+      const stored = localStorage.getItem(LS_KEY_RULES);
+      const r = stored ? JSON.parse(stored) : null;
+      
+      if (!Array.isArray(r)) {
+        return defaultRules;
+      }
+      
       r.forEach((rule) => {
         if (!Array.isArray(rule.breaks)) rule.breaks = [];
       });
       return r;
-    } catch {
+    } catch (e) {
+      console.error("[Rules] Failed to load rules:", e);
       return defaultRules;
     }
   }
@@ -991,9 +1031,20 @@
 
   /* ===== Breaks / Segments ===== */
   const normalizeBreaks = (breaks, startDate, endDate) => {
+    if (!Array.isArray(breaks) || !startDate || !endDate) {
+      return [];
+    }
+    
     const res = [];
     const S = +startDate,
       E = +endDate;
+    
+    // Validate that end is after start
+    if (E <= S) {
+      console.warn("[Breaks] Invalid time window: end must be after start");
+      return [];
+    }
+    
     for (const b of breaks || []) {
       const sHM = parseHM(b.start),
         eHM = parseHM(b.end);
