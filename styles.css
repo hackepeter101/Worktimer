@@ -318,7 +318,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .panel {
   width: min(880px, 96vw);
   max-height: 86vh;
-  overflow: auto;
+  overflow: hidden;
   background: var(--card);
   color: var(--fg);
   border-radius: 12px;
@@ -1020,14 +1020,16 @@ button,
 .color-input-group input[type="color"] {
   width: 60px;
   height: 40px;
-  border: 2px solid var(--muted);
+  border: 2px solid #3c3e42;
   border-radius: var(--btn-radius);
   cursor: pointer;
-  background: var(--card);
+  background: #2c2e31;
   padding: 4px;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .color-input-group input[type="color"]::-webkit-color-swatch-wrapper {
@@ -1038,6 +1040,7 @@ button,
 .color-input-group input[type="color"]::-webkit-color-swatch {
   border: none;
   border-radius: calc(var(--btn-radius) - 4px);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
 .color-input-group input[type="color"]::-moz-color-swatch {
@@ -1047,12 +1050,20 @@ button,
 
 .color-input-group input[type="color"]:hover {
   border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .color-input-group input[type="color"]:focus {
   border-color: var(--accent);
   outline: none;
   box-shadow: var(--focus);
+  transform: translateY(0);
+}
+
+.color-input-group input[type="color"]:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .color-text {
@@ -1102,4 +1113,41 @@ button,
     height: 36px;
   }
 }
+
+/* Custom Scrollbar Styling */
+.welcome-content::-webkit-scrollbar,
+.theme-editor-content::-webkit-scrollbar,
+.simple-settings::-webkit-scrollbar {
+  width: 8px;
+}
+
+.welcome-content::-webkit-scrollbar-track,
+.theme-editor-content::-webkit-scrollbar-track,
+.simple-settings::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.welcome-content::-webkit-scrollbar-thumb,
+.theme-editor-content::-webkit-scrollbar-thumb,
+.simple-settings::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.welcome-content::-webkit-scrollbar-thumb:hover,
+.theme-editor-content::-webkit-scrollbar-thumb:hover,
+.simple-settings::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Firefox scrollbar styling */
+.welcome-content,
+.theme-editor-content,
+.simple-settings {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted) transparent;
+}
+
 
