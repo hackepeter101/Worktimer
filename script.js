@@ -1573,6 +1573,13 @@
 
   /* ===== Init ===== */
   (async () => {
+    // Initialize new theme switcher first (non-blocking)
+    if (window.ThemeSwitcher) {
+      ThemeSwitcher.init().catch(() => {
+        console.warn('Theme switcher failed to initialize, using default theme');
+      });
+    }
+
     // Start timer immediately - don't wait for theme/images
     tick();
     setInterval(tick, 1000);
@@ -1589,4 +1596,47 @@
     initLayoutRadios();
     if (!localStorage.getItem(LS_KEY_LAYOUT)) saveLayout("big-total");
   })();
+
+  /* ===== Theme Toggle Button ===== */
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      if (window.ThemeSwitcher) {
+        ThemeSwitcher.cycleTheme();
+      }
+    });
+  }
+
+  /* ===== CTA Button Handlers (Placeholder) ===== */
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const stopBtn = document.getElementById('stopBtn');
+
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      console.log('Start clicked');
+      // Placeholder - timer start logic would go here
+      startBtn.style.display = 'none';
+      if (pauseBtn) pauseBtn.style.display = '';
+      if (stopBtn) stopBtn.style.display = '';
+    });
+  }
+
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', () => {
+      console.log('Pause clicked');
+      // Placeholder - timer pause logic would go here
+      pauseBtn.textContent = pauseBtn.textContent.includes('Resume') ? 'Pause' : 'Resume';
+    });
+  }
+
+  if (stopBtn) {
+    stopBtn.addEventListener('click', () => {
+      console.log('Stop clicked');
+      // Placeholder - timer stop logic would go here
+      if (startBtn) startBtn.style.display = '';
+      if (pauseBtn) pauseBtn.style.display = 'none';
+      if (stopBtn) stopBtn.style.display = 'none';
+    });
+  }
 })();
