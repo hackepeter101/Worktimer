@@ -131,12 +131,12 @@
       if (entry && entry.url && entry.timestamp) {
         const age = Date.now() - entry.timestamp;
         if (age < BING_CACHE_DURATION) {
-          console.log("[BING] Using cached image", entry.url);
+          // Silent cache hit - image loading successful
           return entry.url;
         }
       }
     } catch (e) {
-      console.warn("[BING] Cache read error:", e);
+      // Silent error - will try to fetch fresh image
     }
     return null;
   }
@@ -161,9 +161,9 @@
       });
       
       localStorage.setItem(BING_CACHE_KEY, JSON.stringify(cache));
-      console.log("[BING] Cached image for", key);
+      // Silent cache write - image successfully loaded and cached
     } catch (e) {
-      console.warn("[BING] Cache write error:", e);
+      // Silent error - caching failed but app continues to work
     }
   }
 
@@ -193,15 +193,18 @@
 
   /**
    * Retry-Helper mit exponentialem Backoff
+   * Silent mode for image loading to avoid console spam
    */
-  async function retryWithBackoff(fn, retries = 2, initialDelay = 500) {
+  async function retryWithBackoff(fn, retries = 2, initialDelay = 500, silent = false) {
     for (let i = 0; i <= retries; i++) {
       try {
         return await fn();
       } catch (e) {
         if (i === retries) throw e;
         const delay = initialDelay * Math.pow(2, i);
-        console.warn(`[RETRY] Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+        if (!silent) {
+          console.warn(`[RETRY] Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+        }
         await new Promise(r => setTimeout(r, delay));
       }
     }
@@ -232,8 +235,8 @@
 
   /**
    * Robust: Holt das Bing Image of the Day (JSON) und gibt eine absolute Bild-URL zurück.
-   * Versucht: Cache → direkt → AllOrigins /raw → AllOrigins /get → cors.isomorphic-git → corsproxy.io
-   * Mit Retry-Logik und Caching für bessere Stabilität
+   * Silent mode: Minimale Konsolenausgabe, funktioniert auch wenn alle Quellen fehlschlagen
+   * Non-blocking: Läuft asynchron ohne die App zu blockieren
    */
   async function fetchBingImage(mkt) {
     const market = mkt || "de-DE";
@@ -260,9 +263,9 @@
 
     for (const c of candidates) {
       try {
-        // Verwende Retry-Logik für jede Quelle
+        // Verwende Retry-Logik für jede Quelle (silent mode)
         const imageUrl = await retryWithBackoff(async () => {
-          console.log(`[BING] Trying ${c.type}: ${c.url.substring(0, 60)}...`);
+          // Silent mode - no console output unless debugging
           
           const res = await fetchWithTimeout(
             c.url,
@@ -303,13 +306,12 @@
           // Validiere dass das Bild tatsächlich geladen werden kann
           try {
             await preloadImage(fullUrl, 3000);
-            console.log(`[BING] Success with ${c.type}:`, fullUrl);
+            // Silent success
             return fullUrl;
           } catch (preloadErr) {
-            console.warn(`[BING] Image preload failed for ${fullUrl}:`, preloadErr.message);
             throw new Error(`Image validation failed: ${preloadErr.message}`);
           }
-        }, 1, 300); // 1 retry mit kurzem Delay
+        }, 1, 300, true); // Silent mode enabled
         
         // Bei Erfolg: cachen und zurückgeben
         if (imageUrl) {
@@ -318,12 +320,12 @@
         }
       } catch (e) {
         lastError = e;
-        console.warn("[BING] Failed with", c.type, "->", e?.message || e);
-        // try next
+        // Silent failure - continue to next source
       }
     }
     
-    console.error("[BING] All sources failed. Last error:", lastError);
+    // All sources failed - return null (app will use fallback)
+    // No console error to avoid spam
     return null;
   }
 
@@ -360,6 +362,7 @@
   /**
    * Calculate average brightness of an image
    * Returns a value between 0 (dark) and 255 (bright)
+   * Silent mode: Returns default on error
    */
   function getImageBrightness(imageUrl) {
     return new Promise((resolve, reject) => {
@@ -396,14 +399,14 @@
           const avgBrightness = totalBrightness / (data.length / 4);
           resolve(avgBrightness);
         } catch (error) {
-          console.warn("[Brightness] Error analyzing image:", error);
-          resolve(128); // Default to mid-brightness on error
+          // Silent error - return default mid-brightness
+          resolve(128);
         }
       };
       
       img.onerror = () => {
-        console.warn("[Brightness] Failed to load image for analysis");
-        resolve(128); // Default to mid-brightness on error
+        // Silent error - return default mid-brightness
+        resolve(128);
       };
       
       img.src = imageUrl;
@@ -437,6 +440,7 @@
   }
 
   // applyTheme (async wegen Bing)
+  // Non-blocking: Image loading läuft im Hintergrund und blockiert nicht die App
   async function applyTheme(key = loadTheme(), now = new Date()) {
     const theme = key ? getThemeByKey(key) : null;
     if (!theme) return;
@@ -461,25 +465,36 @@
     body.style.color = p.fg || "";
 
     // NEU/bleibt: Bing oder eigene Liste
+    // Image loading läuft asynchron und blockiert nicht
     let url = null;
     if (theme.source === "bing") {
+      // Bing image loading - non-blocking, returns null on failure
       url = await fetchBingImage(theme.bingMarket || "de-DE");
     } else {
       url = selectDailyBg(theme, now);
     }
-    body.style.backgroundImage = url ? `url("${url}")` : "";
-    body.style.backgroundSize = "cover";
-    body.style.backgroundPosition = "center";
-    body.style.backgroundRepeat = "no-repeat";
     
-    // Auto-adjust text color based on background image brightness
-    if (url && (theme.source === "bing" || theme.bgDaily || theme.bgImage)) {
+    // Graceful fallback: If no image, use solid color background
+    if (url) {
+      body.style.backgroundImage = `url("${url}")`;
+      body.style.backgroundSize = "cover";
+      body.style.backgroundPosition = "center";
+      body.style.backgroundRepeat = "no-repeat";
+      
+      // Auto-adjust text color based on background image brightness
       try {
         const brightness = await getImageBrightness(url);
         adjustTextColors(brightness);
       } catch (error) {
-        console.warn("[Theme] Failed to adjust text colors:", error);
+        // Silent error - use default text colors
       }
+    } else {
+      // No image available - use solid background color
+      body.style.backgroundImage = "";
+      body.style.backgroundSize = "";
+      body.style.backgroundPosition = "";
+      body.style.backgroundRepeat = "";
+      // Keep the palette colors for solid background
     }
   }
 
@@ -491,7 +506,9 @@
     next.setHours(24, 0, 0, 0);
     const ms = next - now + 1000;
     dailyBgTimer = setTimeout(() => {
-      applyTheme(loadTheme(), new Date());
+      applyTheme(loadTheme(), new Date()).catch(() => {
+        // Silent error - app continues to work
+      });
       scheduleDailyBgRefresh();
     }, ms);
   }
@@ -556,7 +573,9 @@
         )
           return;
         saveTheme(t.key);
-        applyTheme(t.key);
+        applyTheme(t.key).catch(() => {
+          // Silent error - app continues to work
+        });
         updateThemeSelection();
       });
       // Bearbeiten
@@ -647,7 +666,9 @@
     themeStore.themes.push(theme);
     saveThemeStore(themeStore);
     saveTheme(theme.key);
-    applyTheme(theme.key);
+    applyTheme(theme.key).catch(() => {
+      // Silent error - app continues to work
+    });
     renderThemeChips();
     updateThemeSelection();
 
@@ -663,7 +684,9 @@
         const fallback = themeStore.themes[0]?.key || null;
         if (fallback) {
           saveTheme(fallback);
-          applyTheme(fallback);
+          applyTheme(fallback).catch(() => {
+            // Silent error - app continues to work
+          });
         } else {
           localStorage.removeItem(LS_KEY_THEME);
         }
@@ -765,7 +788,11 @@
     saveThemeStore(themeStore);
     renderThemeChips();
     updateThemeSelection();
-    if (loadTheme() === key) applyTheme(key);
+    if (loadTheme() === key) {
+      applyTheme(key).catch(() => {
+        // Silent error - app continues to work
+      });
+    }
     finishEditMode();
   }
 
@@ -780,7 +807,10 @@
   $("#refreshBing")?.addEventListener("click", async () => {
     const current = getThemeByKey(loadTheme());
     if (!current || current.source !== "bing") return;
-    await applyTheme(current.key);
+    // Non-blocking refresh - errors are handled silently
+    applyTheme(current.key).catch(() => {
+      // Silent error - app continues to work
+    });
   });
 
   // Add/Save Theme Button
@@ -1543,15 +1573,20 @@
 
   /* ===== Init ===== */
   (async () => {
-    await applyTheme(loadTheme()); // wichtig: async (Bing)
+    // Start timer immediately - don't wait for theme/images
+    tick();
+    setInterval(tick, 1000);
+    
+    // Theme and image loading happens in background, non-blocking
+    applyTheme(loadTheme()).catch(() => {
+      // Silent error - app continues to work without images
+    });
+    
     renderThemeListUI();
     scheduleDailyBgRefresh();
 
     renderRules();
     initLayoutRadios();
     if (!localStorage.getItem(LS_KEY_LAYOUT)) saveLayout("big-total");
-
-    tick();
-    setInterval(tick, 1000);
   })();
 })();
