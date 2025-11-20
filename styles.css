@@ -153,7 +153,7 @@ footer .actions {
   border-radius: inherit;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(90deg, var(--barFrom), var(--barTo));
+  background: var(--barFrom);
   transition: width 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
     background 0.2s ease;
 }
@@ -165,51 +165,6 @@ footer .actions {
 .bar.is-break {
   --barFrom: var(--barFrom-break);
   --barTo: var(--barTo-break);
-}
-.bar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    115deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.14) 45%,
-    rgba(255, 255, 255, 0.28) 50%,
-    rgba(255, 255, 255, 0.14) 55%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  left: -35%;
-  right: -35%;
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    black 12%,
-    black 88%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    black 12%,
-    black 88%,
-    transparent 100%
-  );
-  transform: translate3d(-120%, 0, 0);
-  animation: wave-move 2.4s ease-in-out infinite;
-  will-change: transform;
-  pointer-events: none;
-  mix-blend-mode: overlay;
-}
-@keyframes wave-move {
-  0% {
-    transform: translate3d(-120%, 0, 0);
-  }
-  60% {
-    transform: translate3d(120%, 0, 0);
-  }
-  100% {
-    transform: translate3d(120%, 0, 0);
-  }
 }
 .progress-meta {
   margin-top: 8px;
@@ -251,7 +206,7 @@ footer .actions {
   transform: translateY(0);
 }
 .btn.primary {
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background: var(--accent);
   color: #0b0c0f;
 }
 .btn.danger {
@@ -433,7 +388,7 @@ button,
   box-shadow: var(--focus);
 }
 .segmented input:checked + label {
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background: var(--accent);
   color: #0b0c0f;
 }
 
@@ -567,7 +522,7 @@ button,
 }
 .day-chip.on,
 .day-chip[aria-pressed="true"] {
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background: var(--accent);
   color: #0b0c0f;
 }
 .day-chip:focus-visible {
@@ -701,90 +656,5 @@ button,
   .stack {
     padding: 0 4px;
     gap: 8px;
-  }
-}
-
-/* CTA Buttons */
-.cta-buttons {
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.btn-cta {
-  min-width: 140px;
-  padding: 16px 24px;
-  font-size: 16px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 2px solid var(--accent);
-  background: transparent;
-  color: var(--accent);
-  transition: all 0.15s ease;
-}
-
-.btn-cta:hover {
-  background: var(--accent);
-  color: var(--bg);
-  transform: translateY(-2px);
-}
-
-.btn-cta:active {
-  transform: translateY(0);
-}
-
-.btn-cta svg {
-  width: 20px;
-  height: 20px;
-}
-
-.btn-start {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.btn-start:hover {
-  background: var(--accent);
-  color: var(--bg);
-}
-
-.btn-pause {
-  border-color: #ffa500;
-  color: #ffa500;
-}
-
-.btn-pause:hover {
-  background: #ffa500;
-  color: var(--bg);
-}
-
-.btn-stop {
-  border-color: var(--danger);
-  color: var(--danger);
-}
-
-.btn-stop:hover {
-  background: var(--danger);
-  color: #fff;
-}
-
-@media (max-width: 640px) {
-  .btn-cta {
-    min-width: 110px;
-    padding: 14px 20px;
-    font-size: 14px;
-  }
-  
-  .btn-cta svg {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .cta-buttons {
-    gap: 10px;
-    margin-top: 20px;
   }
 }
