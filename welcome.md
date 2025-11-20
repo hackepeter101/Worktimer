@@ -1,36 +1,37 @@
-# Welcome to Workday Countdown! 🎉
+# Welcome to Workday Countdown
 
-Thank you for using **Workday Countdown** - your personal work timer assistant.
+Hey there! I'm Peter from Germany, and I built this during... well, let's say during my lunch breaks (definitely not on company time, I swear! 😅).
 
-## What is Workday Countdown?
+## Why I Made This
 
-Workday Countdown helps you keep track of your work hours with:
+You know that feeling when you're sitting at your desk, watching the clock, wondering "How much longer until I can go home?" Yeah, me too. So instead of constantly checking the time and doing mental math, I decided to build something that would do it for me.
 
-- ⏰ **Real-time countdowns** to your next break or end of workday
-- 📊 **Visual progress bars** showing your work progress
-- 🎨 **Beautiful themes** with daily background images
-- 📅 **Flexible work rules** for different days and schedules
-- ☕ **Break tracking** to help you take regular breaks
+## What It Does
+
+This little tool keeps track of your workday and shows you exactly how much time is left until your next break or until you can finally escape... I mean, finish work for the day.
 
 ## Getting Started
 
-1. **Set up your work rules** - Click the "rules" button in the footer to configure your work schedule
-2. **Choose a theme** - Click the "theme" button or use the theme selector to personalize your experience
-3. **Toggle display modes** - Switch between "total" and "break" countdown views
+1. **Set up your schedule**: Click "rules" at the bottom and tell it when you start, when you finish, and when you take breaks.
+2. **Make it pretty**: Hit the theme button to find something that doesn't make you want to cry.
+3. **Switch views**: Toggle between seeing your total time left or just time until your next break (sometimes you need the small victories).
 
-## Features
+## What's Inside
 
-- **Smart countdown**: Shows time until your next break or end of work
-- **Progress tracking**: Visual bar showing how much of your workday is complete
-- **Customizable rules**: Set different schedules for different days
-- **Theme system**: Choose from various themes or create your own
-- **Bing daily images**: Optional daily background images from Bing
+- Real-time countdown that updates every second (because every second counts when you're waiting to leave)
+- Progress bar showing how much of your day is done (very satisfying to watch)
+- Different rules for different days (because Mondays and Fridays are not the same)
+- Nice themes with daily Bing images (at least something pretty to look at)
+- Break tracking (seriously, take your breaks!)
 
-## Tips
+## Pro Tips from Someone Who Watches the Clock Too Much
 
-- You can create multiple work rules for different weekdays
-- Add breaks to your schedule to stay refreshed
-- Try different themes to find the perfect look for you
-- The countdown updates in real-time every second
+- Set up different rules for each weekday - your schedule probably isn't the same every day
+- Actually use those break reminders - your sanity will thank you
+- Try the different themes until you find one that sparks a tiny bit of joy
+- The timer updates every second, so you can watch your freedom approach in real-time
 
-Enjoy your productive workday! 💪
+Hope this helps make your workdays a bit more bearable. We're all just trying to make it to 5 PM, right?
+
+Prost! 🍺
+Peter
