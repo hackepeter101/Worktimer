@@ -10,6 +10,7 @@
   const LS_KEY_LAYOUT = "workday.layout.v1"; // 'big-total' | 'big-break'
   const THEME_STORE_KEY = "workday.themeStore.v2";
   const LS_KEY_THEME = "workday.theme.v2";
+  const LS_KEY_NOTIFICATIONS = "workday.notifications.v1";
 
   /* ===== Days ===== */
   const dayAbbr = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
@@ -44,6 +45,165 @@
   const loadLayout = () =>
     localStorage.getItem(LS_KEY_LAYOUT) || "big-total";
   const saveLayout = (l) => localStorage.setItem(LS_KEY_LAYOUT, l);
+
+  /* ===== Notification System ===== */
+  const NotificationSystem = {
+    _settings: null,
+    _lastNotificationTime: 0,
+    _notificationCooldown: 60000, // 1 minute cooldown between notifications
+    _scheduledNotifications: new Set(),
+
+    loadSettings() {
+      try {
+        const stored = localStorage.getItem(LS_KEY_NOTIFICATIONS);
+        this._settings = stored ? JSON.parse(stored) : {
+          enabled: false,
+          breakReminders: true,
+          reminderMinutes: 5,
+          permissionAsked: false
+        };
+        return this._settings;
+      } catch {
+        return {
+          enabled: false,
+          breakReminders: true,
+          reminderMinutes: 5,
+          permissionAsked: false
+        };
+      }
+    },
+
+    saveSettings(settings) {
+      this._settings = settings;
+      localStorage.setItem(LS_KEY_NOTIFICATIONS, JSON.stringify(settings));
+    },
+
+    async registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+        return false;
+      }
+      
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/'
+        });
+        return true;
+      } catch (error) {
+        console.error('Service worker registration failed:', error);
+        return false;
+      }
+    },
+
+    async requestPermission() {
+      if (!('Notification' in window)) {
+        return false;
+      }
+
+      const settings = this.loadSettings();
+      
+      // Check if permission already granted
+      if (Notification.permission === 'granted') {
+        settings.enabled = true;
+        settings.permissionAsked = true;
+        this.saveSettings(settings);
+        return true;
+      }
+
+      // Request permission
+      const permission = await Notification.requestPermission();
+      settings.permissionAsked = true;
+      
+      if (permission === 'granted') {
+        settings.enabled = true;
+        this.saveSettings(settings);
+        await this.registerServiceWorker();
+        return true;
+      } else {
+        settings.enabled = false;
+        this.saveSettings(settings);
+        return false;
+      }
+    },
+
+    isEnabled() {
+      const settings = this.loadSettings();
+      return settings.enabled && Notification.permission === 'granted';
+    },
+
+    async showNotification(title, options = {}) {
+      if (!this.isEnabled()) return;
+
+      // Cooldown check to prevent spam
+      const now = Date.now();
+      if (now - this._lastNotificationTime < this._notificationCooldown) {
+        return;
+      }
+      this._lastNotificationTime = now;
+
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+          icon: '/icons/icon-192.svg',
+          badge: '/icons/icon-192.svg',
+          vibrate: [200, 100, 200],
+          tag: 'break-reminder',
+          requireInteraction: false,
+          ...options
+        });
+      } catch (error) {
+        console.error('Failed to show notification:', error);
+      }
+    },
+
+    checkBreakReminder(state, now) {
+      if (!this.isEnabled()) return;
+      
+      const settings = this.loadSettings();
+      if (!settings.breakReminders) return;
+
+      // Only check during work time
+      if (state.type !== 'during' || state.mode !== 'work') return;
+
+      const segs = state.segments || [];
+      const nextBreak = segs.find(s => s.type === 'break' && s.start > now);
+      
+      if (!nextBreak) return;
+
+      const timeToBreak = nextBreak.start - now;
+      const reminderMs = settings.reminderMinutes * 60 * 1000;
+      
+      // Show notification if we're within the reminder window (e.g., 5 minutes before break)
+      // Allow a 30-second window to catch the reminder time
+      if (timeToBreak <= reminderMs && timeToBreak > (reminderMs - 30000)) {
+        const breakKey = `${nextBreak.start.getTime()}`;
+        
+        // Prevent duplicate notifications for the same break
+        if (this._scheduledNotifications.has(breakKey)) return;
+        this._scheduledNotifications.add(breakKey);
+        
+        // Clean up old scheduled notifications
+        if (this._scheduledNotifications.size > 10) {
+          const oldest = Array.from(this._scheduledNotifications)[0];
+          this._scheduledNotifications.delete(oldest);
+        }
+
+        const breakTime = toHM(nextBreak.start);
+        const minutesUntil = Math.ceil(timeToBreak / 60000);
+        
+        this.showNotification('Break Reminder', {
+          body: `Your break starts in ${minutesUntil} minute${minutesUntil !== 1 ? 's' : ''} at ${breakTime}`,
+          tag: `break-${breakKey}`
+        });
+      }
+    },
+
+    disable() {
+      const settings = this.loadSettings();
+      settings.enabled = false;
+      this.saveSettings(settings);
+      this._scheduledNotifications.clear();
+    }
+  };
 
   /* ===== THEME SYSTEM v2 (no presets, per-theme Bing, edit) ===== */
   function loadThemeStore() {
@@ -1027,6 +1187,89 @@
     });
   });
   
+  // Notifications Settings
+  $("#notificationsBtn")?.addEventListener("click", () => {
+    const settings = NotificationSystem.loadSettings();
+    const permissionStatus = Notification?.permission || 'default';
+    const isSupported = 'Notification' in window && 'serviceWorker' in navigator;
+    
+    let statusMessage = '';
+    let actionButtons = '';
+    
+    if (!isSupported) {
+      statusMessage = '<div class="notification-status warning">Your browser does not support notifications.</div>';
+    } else if (permissionStatus === 'granted') {
+      statusMessage = `<div class="notification-status ${settings.enabled ? 'success' : ''}">Notifications are ${settings.enabled ? 'enabled' : 'disabled'}.</div>`;
+      actionButtons = settings.enabled 
+        ? '<button class="simple-btn" id="disableNotifications">Disable Notifications</button>'
+        : '<button class="simple-btn active" id="enableNotifications">Enable Notifications</button>';
+    } else if (permissionStatus === 'denied') {
+      statusMessage = '<div class="notification-status error">Notifications are blocked. Please enable them in your browser settings.</div>';
+    } else {
+      statusMessage = '<div class="notification-status">Enable notifications to receive break reminders.</div>';
+      actionButtons = '<button class="simple-btn active" id="enableNotifications">Enable Notifications</button>';
+    }
+    
+    const content = `
+      <div class="simple-option">
+        <div class="simple-option-label">break reminders</div>
+        ${statusMessage}
+        ${settings.enabled && permissionStatus === 'granted' ? `
+          <div style="margin-top: 16px;">
+            <label style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <input type="checkbox" id="breakRemindersToggle" ${settings.breakReminders ? 'checked' : ''} 
+                     style="width: 18px; height: 18px; cursor: pointer;">
+              <span>Remind me before breaks</span>
+            </label>
+            <label style="display: block; margin-bottom: 8px;">
+              <span style="display: block; margin-bottom: 4px;">Reminder time (minutes before break):</span>
+              <input type="number" id="reminderMinutes" class="simple-input" 
+                     value="${settings.reminderMinutes || 5}" 
+                     min="1" max="30" 
+                     style="width: 100px;">
+            </label>
+          </div>
+        ` : ''}
+        <div class="simple-option-buttons" style="margin-top: 16px;">
+          ${actionButtons}
+        </div>
+      </div>
+    `;
+    openSettings(content);
+    
+    // Enable notifications button
+    $("#enableNotifications", settingsContent)?.addEventListener('click', async () => {
+      const granted = await NotificationSystem.requestPermission();
+      if (granted) {
+        // Refresh the settings UI to show the new state
+        $("#notificationsBtn")?.click();
+      }
+    });
+    
+    // Disable notifications button
+    $("#disableNotifications", settingsContent)?.addEventListener('click', () => {
+      NotificationSystem.disable();
+      $("#notificationsBtn")?.click(); // Refresh UI
+    });
+    
+    // Break reminders toggle
+    $("#breakRemindersToggle", settingsContent)?.addEventListener('change', (e) => {
+      settings.breakReminders = e.target.checked;
+      NotificationSystem.saveSettings(settings);
+    });
+    
+    // Reminder minutes input
+    $("#reminderMinutes", settingsContent)?.addEventListener('change', (e) => {
+      const value = parseInt(e.target.value, 10);
+      if (value >= 1 && value <= 30) {
+        settings.reminderMinutes = value;
+        NotificationSystem.saveSettings(settings);
+      } else {
+        e.target.value = settings.reminderMinutes;
+      }
+    });
+  });
+  
   $("#closePanel")?.addEventListener("click", closeSettings);
   overlay?.addEventListener("mousedown", (e) => {
     if (e.target === overlay) closeSettings();
@@ -1705,6 +1948,9 @@
       // break style
       progressEl?.classList.toggle("is-break", st.mode === "break");
       progressBar?.classList.toggle("is-break", st.mode === "break");
+      
+      // Check for break reminders
+      NotificationSystem.checkBreakReminder(st, now);
     } else {
       if (countdownBig) countdownBig.textContent = "–:–";
       if (labelBig) labelBig.textContent = "Keine aktive/kommende Regel";

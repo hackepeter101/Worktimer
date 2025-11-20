@@ -8,7 +8,35 @@ A beautiful countdown timer for tracking your workday with customizable themes.
 - **Progress Visualization**: Visual progress bar showing your workday completion
 - **Flexible Rules**: Configure different work schedules for different days of the week
 - **Break Management**: Add multiple breaks to your work schedule
+- **Break Reminders**: Get web push notifications to remind you when breaks are coming (opt-in)
 - **Theme System**: Choose from built-in themes or create your own custom themes
+
+## Break Reminders (Web Push Notifications)
+
+Worktimer can send you browser notifications to remind you when your breaks are approaching, so you never miss a scheduled break.
+
+### How to Enable Notifications
+
+1. Click the **"notifications"** button (bell icon) in the footer
+2. Click **"Enable Notifications"** in the settings panel
+3. Allow notifications when your browser prompts you
+4. Configure your reminder preferences:
+   - Toggle break reminders on/off
+   - Set how many minutes before a break you want to be reminded (1-30 minutes, default is 5)
+
+### Privacy & Permissions
+
+- **No immediate permission prompt**: The app will NOT ask for notification permissions when you first open it
+- **You're in control**: Notifications are completely optional and only enabled when you explicitly click "Enable Notifications"
+- **Local only**: Notifications are generated locally in your browser - no external push service is used
+- **Revoke anytime**: You can disable notifications at any time through the settings panel or your browser settings
+
+### How It Works
+
+- Once enabled, the app monitors your work schedule in the background
+- When a break is approaching (based on your configured reminder time), you'll receive a notification
+- Clicking the notification will bring you back to the app
+- The app uses a service worker to manage notifications efficiently
 
 ## Theme System
 
