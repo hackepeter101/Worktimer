@@ -13,18 +13,18 @@ body {
 }
 
 :root {
-  --bg: var(--color-bg, #0b0c0f);
-  --fg: var(--color-text, #e9eef4);
-  --muted: var(--color-muted, #a7b0bf);
-  --card: var(--color-surface, #14161b);
-  --accent: var(--color-accent, #6ea8fe);
-  --accent-2: #b17aff;
-  --danger: #ff6b6b;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  --radius: 0;
+  --bg: var(--color-bg, #323437);
+  --fg: var(--color-text, #d1d0c5);
+  --muted: var(--color-muted, #646669);
+  --card: var(--color-surface, #2c2e31);
+  --accent: var(--color-accent, #e2b714);
+  --accent-2: #e2b714;
+  --danger: #ca4754;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  --radius: 8px;
   --gap: 16px;
-  --btn-radius: 0;
-  --focus: 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+  --btn-radius: 8px;
+  --focus: 0 0 0 3px rgba(226, 183, 20, 0.3);
 
   --count-font: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     "Liberation Mono", "DejaVu Sans Mono", monospace;
@@ -50,13 +50,15 @@ body {
   overflow-x: hidden;
 }
 
-header,
+header {
+  display: none;
+}
 footer {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--gap);
-  padding: 16px clamp(16px, 4vw, 40px);
+  padding: 24px clamp(16px, 4vw, 40px);
 }
 .brand {
   display: flex;
@@ -85,20 +87,20 @@ footer {
   background: transparent;
   border: none;
   color: var(--muted);
-  padding: 8px 12px;
+  padding: 8px 14px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: all 0.15s ease;
   font-family: var(--ui-font);
   font-size: 14px;
   font-weight: 500;
-  border-radius: 4px;
+  border-radius: var(--btn-radius);
 }
 .setting-btn:hover {
-  color: var(--fg);
-  background: color-mix(in oklab, var(--fg) 5%, transparent);
+  color: var(--accent);
+  background: rgba(226, 183, 20, 0.1);
 }
 .setting-btn svg {
   width: 16px;
@@ -122,14 +124,14 @@ footer .actions {
 .center {
   display: grid;
   place-items: center;
-  padding: clamp(8px, 2vw, 24px);
+  padding: clamp(32px, 8vw, 80px) clamp(8px, 2vw, 24px);
 }
 .stack {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 12px;
+  gap: 20px;
   max-width: 100%;
   width: 100%;
   margin: 0 auto;
@@ -140,78 +142,78 @@ footer .actions {
 /* Dual countdowns */
 .countdown-big {
   font-family: var(--count-font);
-  font-weight: 800;
-  letter-spacing: 0;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
   font-kerning: none;
   font-size: clamp(48px, 15vw, 240px);
-  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  text-shadow: none;
   user-select: none;
   max-width: 100%;
   overflow-wrap: break-word;
   word-break: keep-all;
+  color: var(--accent);
 }
 .countdown-small {
   font-family: var(--count-font);
-  font-weight: 800;
-  letter-spacing: 0;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
   font-kerning: none;
   font-size: clamp(18px, 3.5vw, 48px);
-  opacity: 0.9;
+  opacity: 0.7;
+  color: var(--fg);
 }
 .subtitle {
   margin: 0;
   color: var(--muted);
-  font-weight: 600;
-  font-size: clamp(14px, 2.8vw, 18px);
-  line-height: 1.25;
+  font-weight: 500;
+  font-size: clamp(13px, 2.5vw, 16px);
+  line-height: 1.4;
 }
 
 /* Progress */
 .progress-wrap {
-  width: min(900px, calc(100vw - 32px));
-  margin: 8px auto 0;
+  width: min(800px, calc(100vw - 32px));
+  margin: 16px auto 0;
 }
 .progress {
   position: relative;
-  background: color-mix(in oklab, var(--fg) 6%, transparent);
-  border-radius: var(--radius);
-  height: 18px;
+  background: #2c2e31;
+  border-radius: 12px;
+  height: 12px;
   overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), var(--shadow);
+  box-shadow: none;
 }
 .bar {
   height: 100%;
   width: 0%;
-  border-radius: inherit;
+  border-radius: 12px;
   position: relative;
   overflow: hidden;
-  background: var(--barFrom);
-  transition: width 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     background 0.2s ease;
 }
 /* break-Farben anwenden */
 .progress.is-break .bar {
-  --barFrom: var(--barFrom-break);
-  --barTo: var(--barTo-break);
+  background: #646669;
 }
 .bar.is-break {
-  --barFrom: var(--barFrom-break);
-  --barTo: var(--barTo-break);
+  background: #646669;
 }
 .progress-meta {
-  margin-top: 8px;
+  margin-top: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   color: var(--muted);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 500;
   font-family: var(--count-font);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
@@ -222,34 +224,42 @@ footer .actions {
 /* Buttons & Inputs */
 .btn {
   border: 0;
-  background: color-mix(in oklab, var(--fg) 8%, transparent);
+  background: #3c3e42;
   color: var(--fg);
-  padding: 12px 16px;
+  padding: 12px 18px;
   border-radius: var(--btn-radius);
-  font-weight: 700;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: transform 0.06s ease, background 0.2s ease,
-    box-shadow 0.2s ease;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: all 0.15s ease;
+  box-shadow: none;
   min-height: 44px;
   line-height: 1;
 }
 .btn:hover {
+  background: #4a4c50;
   transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 .btn:active {
   transform: translateY(0);
+  box-shadow: none;
 }
 .btn.primary {
   background: var(--accent);
-  color: #0b0c0f;
+  color: #323437;
+}
+.btn.primary:hover {
+  background: #f0c829;
 }
 .btn.danger {
-  background: color-mix(in oklab, var(--danger) 28%, transparent);
-  color: #fff;
+  background: rgba(202, 71, 84, 0.2);
+  color: #ca4754;
+}
+.btn.danger:hover {
+  background: rgba(202, 71, 84, 0.3);
 }
 .btn svg,
 .btn img {
@@ -262,20 +272,24 @@ label {
 }
 .input,
 select {
-  background: color-mix(in oklab, var(--fg) 6%, transparent);
+  background: #2c2e31;
   color: var(--fg);
-  border: 0;
+  border: 2px solid transparent;
   border-radius: var(--btn-radius);
   padding: 12px 14px;
   min-height: 44px;
   outline: none;
   width: 100%;
   min-width: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: none;
   line-height: 1.1;
+  transition: all 0.15s ease;
 }
 .input:focus,
-select:focus,
+select:focus {
+  border-color: var(--accent);
+  background: #2c2e31;
+}
 .btn:focus {
   box-shadow: var(--focus);
 }
@@ -291,8 +305,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   display: none;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(6px);
-  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.6);
   padding: 20px;
   z-index: 40;
 }
@@ -305,8 +319,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   overflow: auto;
   background: var(--card);
   color: var(--fg);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   padding: clamp(16px, 2.5vw, 28px);
   display: grid;
   gap: 18px;
@@ -321,13 +335,14 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid color-mix(in oklab, var(--fg) 8%, transparent);
+  border-bottom: 1px solid rgba(100, 102, 105, 0.2);
 }
 .panel-header h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   text-transform: lowercase;
+  color: var(--fg);
 }
 .close-btn {
   background: transparent;
@@ -357,8 +372,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 /* Simplified Settings Controls (Monkeytype style) */
 .simple-option {
-  padding: 12px 0;
-  border-bottom: 1px solid color-mix(in oklab, var(--fg) 5%, transparent);
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(100, 102, 105, 0.15);
 }
 .simple-option:last-child {
   border-bottom: none;
@@ -375,25 +390,25 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   flex-wrap: wrap;
 }
 .simple-btn {
-  background: color-mix(in oklab, var(--fg) 5%, transparent);
+  background: #3c3e42;
   border: none;
   color: var(--muted);
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: var(--btn-radius);
   cursor: pointer;
   font-family: var(--ui-font);
   font-size: 13px;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   text-transform: lowercase;
 }
 .simple-btn:hover {
-  background: color-mix(in oklab, var(--fg) 8%, transparent);
+  background: #4a4c50;
   color: var(--fg);
 }
 .simple-btn.active {
   background: var(--accent);
-  color: #0b0c0f;
+  color: #323437;
 }
 
 /* Rule Editor */
@@ -401,18 +416,19 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   max-width: 100%;
 }
 .simple-input {
-  background: color-mix(in oklab, var(--fg) 5%, transparent);
-  border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+  background: #3c3e42;
+  border: 2px solid transparent;
   color: var(--fg);
   padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: var(--btn-radius);
   font-family: var(--ui-font);
   font-size: 13px;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: all 0.15s ease;
 }
 .simple-input:focus {
   border-color: var(--accent);
+  background: #3c3e42;
 }
 .simple-input[type="text"] {
   width: 100%;
@@ -442,9 +458,9 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .editor-actions {
   display: flex;
   gap: 12px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid color-mix(in oklab, var(--fg) 5%, transparent);
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(100, 102, 105, 0.15);
 }
 
 /* Rules List (simplified) */
@@ -453,12 +469,16 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   gap: 12px;
 }
 .rule-item-simple {
-  background: color-mix(in oklab, var(--fg) 4%, transparent);
+  background: #3c3e42;
   padding: 12px 16px;
-  border-radius: 4px;
+  border-radius: var(--btn-radius);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all 0.15s ease;
+}
+.rule-item-simple:hover {
+  background: #4a4c50;
 }
 .rule-item-info {
   flex: 1;
@@ -502,13 +522,13 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 /* Cards */
 .card {
-  background: color-mix(in oklab, var(--fg) 4.5%, transparent);
-  border: 1px solid color-mix(in oklab, var(--fg) 8%, transparent);
-  border-radius: var(--radius);
-  padding: 12px;
+  background: #3c3e42;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
   display: grid;
-  gap: 10px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 .card-head {
   display: flex;
@@ -565,10 +585,10 @@ button,
   grid-auto-flow: column;
   gap: 6px;
   padding: 6px;
-  border-radius: var(--radius);
+  border-radius: 10px;
   width: fit-content;
-  background: color-mix(in oklab, var(--fg) 5.5%, transparent);
-  border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+  background: #2c2e31;
+  border: none;
 }
 .segmented input[type="radio"] {
   position: absolute;
@@ -586,7 +606,7 @@ button,
   text-align: left;
   color: var(--fg);
   user-select: none;
-  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.15s ease;
 }
 .segmented label b {
   font-weight: 800;
@@ -601,7 +621,7 @@ button,
 }
 .segmented input:checked + label {
   background: var(--accent);
-  color: #0b0c0f;
+  color: #323437;
 }
 
 /* Reduced Motion */
