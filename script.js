@@ -888,9 +888,12 @@
     fillDefaultThemeName(true);
   }
 
-  /* ===== Settings Overlay ===== */
+  /* ===== Settings Overlay (Simplified) ===== */
   const overlay = $("#overlay");
-  const openSettings = () => {
+  const settingsContent = $("#settingsContent");
+  
+  const openSettings = (content) => {
+    if (settingsContent) settingsContent.innerHTML = content;
     overlay?.classList.add("show");
     overlay?.setAttribute("aria-hidden", "false");
   };
@@ -898,7 +901,132 @@
     overlay?.classList.remove("show");
     overlay?.setAttribute("aria-hidden", "true");
   };
-  $("#openSettingsBtn")?.addEventListener("click", openSettings);
+  
+  // Layout Settings
+  $("#layoutBtn")?.addEventListener("click", () => {
+    const current = loadLayout();
+    const content = `
+      <div class="simple-option">
+        <div class="simple-option-label">display mode</div>
+        <div class="simple-option-buttons">
+          <button class="simple-btn ${current === 'big-total' ? 'active' : ''}" data-layout="big-total">total</button>
+          <button class="simple-btn ${current === 'big-break' ? 'active' : ''}" data-layout="big-break">break</button>
+        </div>
+      </div>
+    `;
+    openSettings(content);
+    
+    // Add event listeners
+    $$('.simple-btn[data-layout]', settingsContent).forEach(btn => {
+      btn.addEventListener('click', () => {
+        const layout = btn.dataset.layout;
+        saveLayout(layout);
+        tick();
+        updateLayoutLabel();
+        $$('.simple-btn[data-layout]', settingsContent).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  });
+  
+  // Theme Settings
+  $("#themeBtn")?.addEventListener("click", () => {
+    const current = loadTheme();
+    const themeBtns = themeStore.themes.map(t => {
+      const isActive = t.key === current;
+      return `<button class="simple-btn ${isActive ? 'active' : ''}" data-theme="${escapeAttr(t.key)}">${escapeHtml(t.name)}</button>`;
+    }).join('');
+    
+    const content = `
+      <div class="simple-option">
+        <div class="simple-option-label">theme</div>
+        <div class="simple-option-buttons">
+          ${themeBtns}
+        </div>
+      </div>
+    `;
+    openSettings(content);
+    
+    // Add event listeners
+    $$('.simple-btn[data-theme]', settingsContent).forEach(btn => {
+      btn.addEventListener('click', () => {
+        const themeKey = btn.dataset.theme;
+        saveTheme(themeKey);
+        applyTheme(themeKey).catch(() => {});
+        updateThemeLabel();
+        $$('.simple-btn[data-theme]', settingsContent).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  });
+  
+  // Rules Settings
+  $("#rulesBtn")?.addEventListener("click", () => {
+    const rulesList = rules.map(r => {
+      return `
+        <div class="rule-item-simple" data-id="${escapeAttr(r.id)}">
+          <div class="rule-item-info">
+            <div class="rule-item-name">${escapeHtml(r.name || 'Untitled')}</div>
+            <div class="rule-item-details">${escapeHtml(r.days)} • ${escapeHtml(r.start)} - ${escapeHtml(r.end)}</div>
+          </div>
+          <div class="rule-item-actions">
+            <button class="icon-btn edit-rule" title="Edit">
+              <svg width="16" height="16"><use href="#icon-sliders"></use></svg>
+            </button>
+            <button class="icon-btn delete-rule" title="Delete">
+              <svg width="16" height="16"><use href="#icon-trash"></use></svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    const content = `
+      <div class="simple-option">
+        <div class="simple-option-label">work rules</div>
+        <div class="rules-list-simple">
+          ${rulesList}
+          <button class="simple-btn" id="addRuleSimple">+ add rule</button>
+        </div>
+      </div>
+    `;
+    openSettings(content);
+    
+    // Add event listeners for delete
+    $$('.delete-rule', settingsContent).forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const ruleId = e.target.closest('.rule-item-simple').dataset.id;
+        rules = rules.filter(r => r.id !== ruleId);
+        saveRules(rules);
+        // Refresh the rules view
+        $("#rulesBtn").click();
+      });
+    });
+    
+    // Add event listeners for edit (opens full editor)
+    $$('.edit-rule', settingsContent).forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const ruleId = e.target.closest('.rule-item-simple').dataset.id;
+        openFullRulesEditor(ruleId);
+      });
+    });
+    
+    // Add rule button
+    $("#addRuleSimple", settingsContent)?.addEventListener('click', () => {
+      const newRule = {
+        id: crypto.randomUUID(),
+        name: "New Rule",
+        days: "Mo,Di,Mi,Do,Fr",
+        start: "09:00",
+        end: "17:00",
+        breaks: [],
+      };
+      rules.push(newRule);
+      saveRules(rules);
+      openFullRulesEditor(newRule.id);
+    });
+  });
+  
   $("#closePanel")?.addEventListener("click", closeSettings);
   overlay?.addEventListener("mousedown", (e) => {
     if (e.target === overlay) closeSettings();
@@ -907,6 +1035,134 @@
     if (e.key === "Escape" && overlay?.classList.contains("show"))
       closeSettings();
   });
+  
+  // Update footer labels
+  function updateLayoutLabel() {
+    const layout = loadLayout();
+    const label = layout === 'big-total' ? 'total' : 'break';
+    const el = $("#layoutLabel");
+    if (el) el.textContent = label;
+  }
+  
+  function updateThemeLabel() {
+    const current = loadTheme();
+    const theme = getThemeByKey(current);
+    const el = $("#themeLabel");
+    if (el && theme) el.textContent = theme.name.toLowerCase();
+  }
+  
+  // Full rules editor (simplified inline form)
+  function openFullRulesEditor(ruleId) {
+    const rule = rules.find(r => r.id === ruleId);
+    if (!rule) return;
+    
+    const breaksHtml = (rule.breaks || []).map(b => `
+      <div class="break-edit" data-id="${escapeAttr(b.id)}">
+        <input type="time" class="simple-input break-start" value="${escapeAttr(b.start)}" />
+        <span>to</span>
+        <input type="time" class="simple-input break-end" value="${escapeAttr(b.end)}" />
+        <button class="icon-btn delete-break" title="Remove">
+          <svg width="16" height="16"><use href="#icon-trash"></use></svg>
+        </button>
+      </div>
+    `).join('');
+    
+    const daysArr = normalizeDaysString(rule.days);
+    const dayButtons = weekdayOrder.map(d => {
+      const active = daysArr.includes(d);
+      return `<button class="simple-btn day-toggle ${active ? 'active' : ''}" data-day="${d}">${d}</button>`;
+    }).join('');
+    
+    const content = `
+      <div class="rule-editor">
+        <div class="simple-option">
+          <div class="simple-option-label">rule name</div>
+          <input type="text" class="simple-input" id="ruleName" value="${escapeAttr(rule.name)}" />
+        </div>
+        
+        <div class="simple-option">
+          <div class="simple-option-label">days</div>
+          <div class="simple-option-buttons">
+            ${dayButtons}
+          </div>
+        </div>
+        
+        <div class="simple-option">
+          <div class="simple-option-label">work time</div>
+          <div class="time-inputs">
+            <input type="time" class="simple-input" id="ruleStart" value="${escapeAttr(rule.start)}" />
+            <span>to</span>
+            <input type="time" class="simple-input" id="ruleEnd" value="${escapeAttr(rule.end)}" />
+          </div>
+        </div>
+        
+        <div class="simple-option">
+          <div class="simple-option-label">breaks</div>
+          <div class="breaks-list" id="breaksList">
+            ${breaksHtml}
+            <button class="simple-btn" id="addBreak">+ add break</button>
+          </div>
+        </div>
+        
+        <div class="editor-actions">
+          <button class="simple-btn active" id="saveRule">save</button>
+          <button class="simple-btn" id="cancelRule">cancel</button>
+        </div>
+      </div>
+    `;
+    
+    openSettings(content);
+    
+    // Save rule button
+    $("#saveRule", settingsContent)?.addEventListener('click', () => {
+      rule.name = $("#ruleName", settingsContent)?.value || rule.name;
+      rule.start = $("#ruleStart", settingsContent)?.value || rule.start;
+      rule.end = $("#ruleEnd", settingsContent)?.value || rule.end;
+      
+      // Update breaks
+      const breakElems = $$('.break-edit', settingsContent);
+      rule.breaks = breakElems.map(elem => {
+        const id = elem.dataset.id;
+        const start = elem.querySelector('.break-start')?.value;
+        const end = elem.querySelector('.break-end')?.value;
+        return { id, start, end };
+      });
+      
+      saveRules(rules);
+      $("#rulesBtn")?.click(); // Go back to rules list
+    });
+    
+    // Cancel button
+    $("#cancelRule", settingsContent)?.addEventListener('click', () => {
+      $("#rulesBtn")?.click(); // Go back to rules list
+    });
+    
+    // Day toggles
+    $$('.day-toggle', settingsContent).forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        const activeDays = $$('.day-toggle.active', settingsContent).map(b => b.dataset.day);
+        rule.days = activeDays.join(',');
+      });
+    });
+    
+    // Add break button
+    $("#addBreak", settingsContent)?.addEventListener('click', () => {
+      const newBreak = { id: crypto.randomUUID(), start: "12:30", end: "13:00" };
+      rule.breaks = rule.breaks || [];
+      rule.breaks.push(newBreak);
+      openFullRulesEditor(ruleId); // Refresh the editor
+    });
+    
+    // Delete break buttons
+    $$('.delete-break', settingsContent).forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const breakId = e.target.closest('.break-edit').dataset.id;
+        rule.breaks = rule.breaks.filter(b => b.id !== breakId);
+        openFullRulesEditor(ruleId); // Refresh the editor
+      });
+    });
+  }
 
   /* ===== Rules (load/save/default) ===== */
   const defaultRules = [
@@ -1582,11 +1838,12 @@
       // Silent error - app continues to work without images
     });
     
-    renderThemeListUI();
     scheduleDailyBgRefresh();
 
-    renderRules();
-    initLayoutRadios();
+    // Update footer labels
+    updateLayoutLabel();
+    updateThemeLabel();
+    
     if (!localStorage.getItem(LS_KEY_LAYOUT)) saveLayout("big-total");
   })();
 })();
