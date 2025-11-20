@@ -1103,3 +1103,33 @@ button,
   }
 }
 
+/* Notification status messages */
+.notification-status {
+  padding: 12px 16px;
+  border-radius: var(--btn-radius);
+  margin: 12px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  background: var(--card);
+  border: 1px solid var(--muted);
+}
+
+.notification-status.success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: rgb(16, 185, 129);
+}
+
+.notification-status.warning {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+  color: rgb(251, 191, 36);
+}
+
+.notification-status.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: rgb(239, 68, 68);
+}
+
+
