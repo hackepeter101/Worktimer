@@ -7,6 +7,8 @@
 
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="stylesheet" href="styles.css" />
+    <!-- Pickr Color Picker -->
+    <link rel="stylesheet" href="https://unpkg.com/@simonwep/pickr@1.8.2/dist/themes/monolith.min.css"/>
   </head>
 
 
@@ -216,10 +218,7 @@
               <div class="form-group">
                 <label for="bgColor">Background Color</label>
                 <div class="color-input-group">
-                  <div class="color-picker-wrapper">
-                    <input type="color" id="bgColor" value="#323437" class="color-picker-native">
-                    <div class="color-picker-display" data-for="bgColor"></div>
-                  </div>
+                  <div id="bgColor" class="color-picker-container"></div>
                   <input type="text" id="bgColorText" class="simple-input color-text" value="#323437">
                 </div>
               </div>
@@ -227,10 +226,7 @@
               <div class="form-group">
                 <label for="fgColor">Text Color</label>
                 <div class="color-input-group">
-                  <div class="color-picker-wrapper">
-                    <input type="color" id="fgColor" value="#d1d0c5" class="color-picker-native">
-                    <div class="color-picker-display" data-for="fgColor"></div>
-                  </div>
+                  <div id="fgColor" class="color-picker-container"></div>
                   <input type="text" id="fgColorText" class="simple-input color-text" value="#d1d0c5">
                 </div>
               </div>
@@ -238,10 +234,7 @@
               <div class="form-group">
                 <label for="accentColor">Accent Color</label>
                 <div class="color-input-group">
-                  <div class="color-picker-wrapper">
-                    <input type="color" id="accentColor" value="#e2b714" class="color-picker-native">
-                    <div class="color-picker-display" data-for="accentColor"></div>
-                  </div>
+                  <div id="accentColor" class="color-picker-container"></div>
                   <input type="text" id="accentColorText" class="simple-input color-text" value="#e2b714">
                 </div>
               </div>
@@ -249,10 +242,7 @@
               <div class="form-group">
                 <label for="accent2Color">Accent 2 Color</label>
                 <div class="color-input-group">
-                  <div class="color-picker-wrapper">
-                    <input type="color" id="accent2Color" value="#e2b714" class="color-picker-native">
-                    <div class="color-picker-display" data-for="accent2Color"></div>
-                  </div>
+                  <div id="accent2Color" class="color-picker-container"></div>
                   <input type="text" id="accent2ColorText" class="simple-input color-text" value="#e2b714">
                 </div>
               </div>
@@ -260,10 +250,7 @@
               <div class="form-group">
                 <label for="mutedColor">Muted Color</label>
                 <div class="color-input-group">
-                  <div class="color-picker-wrapper">
-                    <input type="color" id="mutedColor" value="#646669" class="color-picker-native">
-                    <div class="color-picker-display" data-for="mutedColor"></div>
-                  </div>
+                  <div id="mutedColor" class="color-picker-container"></div>
                   <input type="text" id="mutedColorText" class="simple-input color-text" value="#646669">
                 </div>
               </div>
@@ -279,6 +266,9 @@
       </section>
     </div>
 
+    <!-- Pickr Color Picker -->
+    <script src="https://unpkg.com/@simonwep/pickr@1.8.2/dist/pickr.min.js"></script>
+    
     <script src="themes.js"></script>
     <script src="themeEditor.js"></script>
     <script src="script.js"></script>

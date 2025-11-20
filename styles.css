@@ -1252,5 +1252,116 @@ button,
   scrollbar-color: var(--muted) transparent;
 }
 
+/* Pickr Color Picker Customization */
+.color-picker-container {
+  width: 80px;
+  height: 48px;
+}
+
+.pcr-button {
+  width: 80px !important;
+  height: 48px !important;
+  border-radius: var(--btn-radius) !important;
+  border: 3px solid var(--card) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.pcr-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  border-color: var(--accent) !important;
+}
+
+.pcr-button:focus {
+  outline: none !important;
+  box-shadow: var(--focus) !important;
+}
+
+.pcr-app {
+  background: var(--card) !important;
+  border: 2px solid var(--muted) !important;
+  border-radius: var(--btn-radius) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.pcr-app * {
+  font-family: var(--ui-font) !important;
+}
+
+.pcr-app .pcr-interaction input {
+  background: var(--bg) !important;
+  color: var(--fg) !important;
+  border: 1px solid var(--muted) !important;
+  border-radius: 4px !important;
+  font-family: var(--count-font) !important;
+  padding: 8px !important;
+}
+
+.pcr-app .pcr-interaction input:focus {
+  border-color: var(--accent) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(226, 183, 20, 0.2) !important;
+}
+
+.pcr-app .pcr-interaction .pcr-result {
+  font-family: var(--count-font) !important;
+  text-transform: uppercase;
+  color: var(--fg) !important;
+}
+
+.pcr-app .pcr-interaction .pcr-save {
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+  border-radius: 4px !important;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  border: none !important;
+  padding: 8px 16px !important;
+}
+
+.pcr-app .pcr-interaction .pcr-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  filter: brightness(1.1);
+}
+
+.pcr-app .pcr-swatches {
+  margin-top: 8px;
+}
+
+.pcr-app .pcr-swatches > button {
+  border-radius: 4px !important;
+  margin: 2px;
+  transition: all 0.15s ease;
+  border: 2px solid transparent !important;
+}
+
+.pcr-app .pcr-swatches > button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-color: var(--accent) !important;
+}
+
+.pcr-app .pcr-selection .pcr-color-preview {
+  border-radius: 4px !important;
+  border: 2px solid var(--muted) !important;
+}
+
+.pcr-app .pcr-selection .pcr-color-chooser,
+.pcr-app .pcr-selection .pcr-color-opacity {
+  border-radius: 4px !important;
+}
+
+.pcr-app .pcr-selection .pcr-color-chooser .pcr-slider,
+.pcr-app .pcr-selection .pcr-color-opacity .pcr-slider {
+  border-radius: 4px !important;
+}
+
+.pcr-app .pcr-selection .pcr-picker {
+  border: 2px solid var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(226, 183, 20, 0.3) !important;
+}
+
 
 

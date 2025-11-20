@@ -5,6 +5,7 @@
 
 let editingThemeId = null;
 let previewedTheme = null;
+let colorPickers = {}; // Store Pickr instances
 
 /**
  * Initialize theme selector dropdown
@@ -111,57 +112,82 @@ function initThemeEditor() {
     updateFormTitle();
   });
   
-  // Initialize enhanced color pickers
-  initEnhancedColorPickers();
+  // Initialize Pickr color pickers
+  initPickrColorPickers();
 }
 
 /**
- * Initialize enhanced color pickers with better UX
+ * Initialize Pickr color pickers with custom theme styling
  */
-function initEnhancedColorPickers() {
+function initPickrColorPickers() {
   const colorFields = [
-    { id: 'bgColor', textId: 'bgColorText' },
-    { id: 'fgColor', textId: 'fgColorText' },
-    { id: 'accentColor', textId: 'accentColorText' },
-    { id: 'accent2Color', textId: 'accent2ColorText' },
-    { id: 'mutedColor', textId: 'mutedColorText' }
+    { id: 'bgColor', textId: 'bgColorText', default: '#323437', label: 'Background' },
+    { id: 'fgColor', textId: 'fgColorText', default: '#d1d0c5', label: 'Text' },
+    { id: 'accentColor', textId: 'accentColorText', default: '#e2b714', label: 'Accent' },
+    { id: 'accent2Color', textId: 'accent2ColorText', default: '#e2b714', label: 'Accent 2' },
+    { id: 'mutedColor', textId: 'mutedColorText', default: '#646669', label: 'Muted' }
   ];
   
   colorFields.forEach(field => {
-    const colorInput = document.getElementById(field.id);
+    const container = document.getElementById(field.id);
     const textInput = document.getElementById(field.textId);
-    const display = document.querySelector(`[data-for="${field.id}"]`);
     
-    if (!colorInput || !textInput || !display) return;
+    if (!container || !textInput) return;
     
-    // Update display background to match color
-    const updateDisplay = () => {
-      display.style.backgroundColor = colorInput.value;
-    };
-    
-    // Sync from color picker to text input and display
-    colorInput.addEventListener('input', (e) => {
-      const value = e.target.value.toUpperCase();
-      textInput.value = value;
-      updateDisplay();
-    });
-    
-    // Sync from text input to color picker
-    textInput.addEventListener('input', (e) => {
-      const value = e.target.value;
-      if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-        colorInput.value = value;
-        updateDisplay();
+    // Create Pickr instance
+    const pickr = Pickr.create({
+      el: container,
+      theme: 'monolith',
+      default: field.default,
+      comparison: false,
+      swatches: [
+        '#323437', '#d1d0c5', '#e2b714', '#646669', // Default theme colors
+        '#ffffff', '#000000', // Basic
+        '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', // Modern palette
+        '#1e293b', '#334155', '#475569', '#64748b', '#94a3b8', '#cbd5e1'  // Slate palette
+      ],
+      components: {
+        preview: true,
+        opacity: false,
+        hue: true,
+        interaction: {
+          hex: true,
+          rgba: false,
+          hsla: false,
+          hsva: false,
+          cmyk: false,
+          input: true,
+          clear: false,
+          save: true
+        }
       }
     });
     
-    // Allow clicking on display to trigger color picker
-    display.addEventListener('click', () => {
-      colorInput.click();
+    // Update text input when color changes
+    pickr.on('change', (color) => {
+      const hexColor = color.toHEXA().toString();
+      textInput.value = hexColor.toUpperCase();
     });
     
-    // Initialize display
-    updateDisplay();
+    // Save color when user clicks save button in picker
+    pickr.on('save', (color) => {
+      if (color) {
+        const hexColor = color.toHEXA().toString();
+        textInput.value = hexColor.toUpperCase();
+      }
+      pickr.hide();
+    });
+    
+    // Update picker when text input changes
+    textInput.addEventListener('input', (e) => {
+      const value = e.target.value;
+      if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+        pickr.setColor(value);
+      }
+    });
+    
+    // Store the instance
+    colorPickers[field.id] = pickr;
   });
 }
 
@@ -395,12 +421,12 @@ function getFormData() {
     return null;
   }
   
-  // Get colors from color inputs
-  const bgColor = document.getElementById('bgColor')?.value;
-  const fgColor = document.getElementById('fgColor')?.value;
-  const accentColor = document.getElementById('accentColor')?.value;
-  const accent2Color = document.getElementById('accent2Color')?.value;
-  const mutedColor = document.getElementById('mutedColor')?.value;
+  // Get colors from text inputs (which are synced with Pickr)
+  const bgColor = document.getElementById('bgColorText')?.value;
+  const fgColor = document.getElementById('fgColorText')?.value;
+  const accentColor = document.getElementById('accentColorText')?.value;
+  const accent2Color = document.getElementById('accent2ColorText')?.value;
+  const mutedColor = document.getElementById('mutedColorText')?.value;
   
   return {
     name,
@@ -435,16 +461,14 @@ function resetForm() {
 }
 
 /**
- * Set color input value (both picker and text)
+ * Set color input value (both Pickr and text)
  */
 function setColorInput(colorId, value) {
-  const colorInput = document.getElementById(colorId);
   const textInput = document.getElementById(colorId + 'Text');
-  const display = document.querySelector(`[data-for="${colorId}"]`);
+  const pickr = colorPickers[colorId];
   
-  if (colorInput) colorInput.value = value;
   if (textInput) textInput.value = value;
-  if (display) display.style.backgroundColor = value;
+  if (pickr) pickr.setColor(value);
 }
 
 /**
