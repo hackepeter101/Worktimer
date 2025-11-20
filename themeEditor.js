@@ -166,40 +166,6 @@ function initEnhancedColorPickers() {
 }
 
 /**
- * Setup color input synchronization between color picker and text input
- * @deprecated - Replaced by enhanced color pickers
- */
-function setupColorInputSync() {
-  const colorPairs = [
-    ['bgColor', 'bgColorText'],
-    ['fgColor', 'fgColorText'],
-    ['accentColor', 'accentColorText'],
-    ['accent2Color', 'accent2ColorText'],
-    ['mutedColor', 'mutedColorText']
-  ];
-  
-  colorPairs.forEach(([colorId, textId]) => {
-    const colorInput = document.getElementById(colorId);
-    const textInput = document.getElementById(textId);
-    
-    if (!colorInput || !textInput) return;
-    
-    // Sync from color picker to text
-    colorInput.addEventListener('input', (e) => {
-      textInput.value = e.target.value;
-    });
-    
-    // Sync from text to color picker
-    textInput.addEventListener('input', (e) => {
-      const value = e.target.value;
-      if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-        colorInput.value = value;
-      }
-    });
-  });
-}
-
-/**
  * Open theme editor modal
  */
 function openThemeEditor() {
