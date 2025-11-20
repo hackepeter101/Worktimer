@@ -111,12 +111,63 @@ function initThemeEditor() {
     updateFormTitle();
   });
   
-  // Sync color inputs
-  setupColorInputSync();
+  // Initialize enhanced color pickers
+  initEnhancedColorPickers();
+}
+
+/**
+ * Initialize enhanced color pickers with better UX
+ */
+function initEnhancedColorPickers() {
+  const colorFields = [
+    { id: 'bgColor', textId: 'bgColorText' },
+    { id: 'fgColor', textId: 'fgColorText' },
+    { id: 'accentColor', textId: 'accentColorText' },
+    { id: 'accent2Color', textId: 'accent2ColorText' },
+    { id: 'mutedColor', textId: 'mutedColorText' }
+  ];
+  
+  colorFields.forEach(field => {
+    const colorInput = document.getElementById(field.id);
+    const textInput = document.getElementById(field.textId);
+    const display = document.querySelector(`[data-for="${field.id}"]`);
+    
+    if (!colorInput || !textInput || !display) return;
+    
+    // Update display background to match color
+    const updateDisplay = () => {
+      display.style.backgroundColor = colorInput.value;
+    };
+    
+    // Sync from color picker to text input and display
+    colorInput.addEventListener('input', (e) => {
+      const value = e.target.value.toUpperCase();
+      textInput.value = value;
+      updateDisplay();
+    });
+    
+    // Sync from text input to color picker
+    textInput.addEventListener('input', (e) => {
+      const value = e.target.value;
+      if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+        colorInput.value = value;
+        updateDisplay();
+      }
+    });
+    
+    // Allow clicking on display to trigger color picker
+    display.addEventListener('click', () => {
+      colorInput.click();
+    });
+    
+    // Initialize display
+    updateDisplay();
+  });
 }
 
 /**
  * Setup color input synchronization between color picker and text input
+ * @deprecated - Replaced by enhanced color pickers
  */
 function setupColorInputSync() {
   const colorPairs = [
@@ -378,6 +429,7 @@ function getFormData() {
     return null;
   }
   
+  // Get colors from color inputs
   const bgColor = document.getElementById('bgColor')?.value;
   const fgColor = document.getElementById('fgColor')?.value;
   const accentColor = document.getElementById('accentColor')?.value;
@@ -422,9 +474,11 @@ function resetForm() {
 function setColorInput(colorId, value) {
   const colorInput = document.getElementById(colorId);
   const textInput = document.getElementById(colorId + 'Text');
+  const display = document.querySelector(`[data-for="${colorId}"]`);
   
   if (colorInput) colorInput.value = value;
   if (textInput) textInput.value = value;
+  if (display) display.style.backgroundColor = value;
 }
 
 /**

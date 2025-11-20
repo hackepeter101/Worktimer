@@ -1012,11 +1012,86 @@ button,
 
 .color-input-group {
   display: grid;
-  grid-template-columns: 60px 1fr;
-  gap: 8px;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
   align-items: center;
 }
 
+/* Enhanced color picker with wrapper */
+.color-picker-wrapper {
+  position: relative;
+  width: 80px;
+  height: 48px;
+  border-radius: var(--btn-radius);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.color-picker-wrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.color-picker-wrapper:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.color-picker-native {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 2;
+}
+
+.color-picker-display {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 3px solid var(--card, #2c2e31);
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  z-index: 1;
+  transition: border-color 0.2s ease;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.color-picker-wrapper:hover .color-picker-display {
+  border-color: var(--accent, #e2b714);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+
+/* Pickr color picker button styling - deprecated but kept for backward compat */
+.color-picker-button {
+  width: 60px;
+  height: 40px;
+  border: 2px solid #3c3e42;
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.color-picker-button:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.color-picker-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Legacy input[type="color"] styles - kept for backward compatibility */
 .color-input-group input[type="color"] {
   width: 60px;
   height: 40px;
@@ -1176,5 +1251,6 @@ button,
   scrollbar-width: thin;
   scrollbar-color: var(--muted) transparent;
 }
+
 
 
