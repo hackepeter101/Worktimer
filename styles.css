@@ -824,3 +824,71 @@ button,
   color: var(--fg);
 }
 
+/* Welcome Panel Styles */
+.welcome-panel {
+  width: min(700px, 92vw);
+  max-height: 80vh;
+  padding: 0;
+}
+
+.welcome-content {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(80vh - 80px);
+}
+
+/* Markdown content styling */
+.welcome-content h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: var(--accent);
+}
+
+.welcome-content h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 24px 0 12px;
+  color: var(--fg);
+}
+
+.welcome-content p {
+  margin: 12px 0;
+  line-height: 1.6;
+  color: var(--fg);
+}
+
+.welcome-content ul, .welcome-content ol {
+  margin: 12px 0;
+  padding-left: 24px;
+  line-height: 1.8;
+}
+
+.welcome-content li {
+  margin: 8px 0;
+  color: var(--fg);
+}
+
+.welcome-content strong {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.welcome-content code {
+  background: rgba(100, 102, 105, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--count-font);
+  font-size: 0.9em;
+}
+
+.welcome-content a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.welcome-content a:hover {
+  text-decoration: underline;
+}
+
+
