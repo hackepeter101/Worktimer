@@ -1827,6 +1827,78 @@
     if (!confettiRAF) confettiRAF = requestAnimationFrame(stepConfetti);
   }
 
+  /* ===== Welcome Popup ===== */
+  const LS_KEY_WELCOME_SHOWN = "workday.welcomeShown.v1";
+  const welcomeOverlay = $("#welcomeOverlay");
+  const welcomeContent = $("#welcomeContent");
+  const closeWelcomeBtn = $("#closeWelcome");
+
+  async function loadWelcomeContent() {
+    try {
+      const response = await fetch('welcome.md');
+      if (!response.ok) {
+        throw new Error(`Failed to load welcome.md: ${response.status}`);
+      }
+      const markdown = await response.text();
+      
+      // Parse markdown using local parser
+      if (window.markdownParser) {
+        const html = window.markdownParser.parse(markdown);
+        return html;
+      } else {
+        // Fallback if parser fails to load
+        return `<pre>${escapeHtml(markdown)}</pre>`;
+      }
+    } catch (error) {
+      console.error('Failed to load welcome content:', error);
+      return `
+        <h1>Welcome to Workday Countdown! 🎉</h1>
+        <p>Thank you for using Workday Countdown - your personal work timer assistant.</p>
+        <p>Configure your work schedule using the "rules" button below to get started!</p>
+      `;
+    }
+  }
+
+  function showWelcomePopup() {
+    welcomeOverlay?.classList.add("show");
+    welcomeOverlay?.setAttribute("aria-hidden", "false");
+  }
+
+  function closeWelcomePopup() {
+    welcomeOverlay?.classList.remove("show");
+    welcomeOverlay?.setAttribute("aria-hidden", "true");
+    // Mark as shown so it doesn't appear again
+    localStorage.setItem(LS_KEY_WELCOME_SHOWN, "true");
+  }
+
+  // Close button event
+  closeWelcomeBtn?.addEventListener("click", closeWelcomePopup);
+
+  // Close on overlay click
+  welcomeOverlay?.addEventListener("mousedown", (e) => {
+    if (e.target === welcomeOverlay) closeWelcomePopup();
+  });
+
+  // Close on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && welcomeOverlay?.classList.contains("show")) {
+      closeWelcomePopup();
+    }
+  });
+
+  async function checkFirstTimeUser() {
+    const hasSeenWelcome = localStorage.getItem(LS_KEY_WELCOME_SHOWN);
+    
+    if (!hasSeenWelcome) {
+      // Load and display welcome content
+      const content = await loadWelcomeContent();
+      if (welcomeContent) {
+        welcomeContent.innerHTML = content;
+      }
+      showWelcomePopup();
+    }
+  }
+
   /* ===== Init ===== */
   (async () => {
     // Start timer immediately - don't wait for theme/images
@@ -1845,5 +1917,8 @@
     updateThemeLabel();
     
     if (!localStorage.getItem(LS_KEY_LAYOUT)) saveLayout("big-total");
+
+    // Check if this is the first time user and show welcome popup
+    await checkFirstTimeUser();
   })();
 })();

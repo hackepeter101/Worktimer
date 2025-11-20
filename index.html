@@ -150,9 +150,29 @@
       </section>
     </div>
 
+    <!-- Welcome Popup -->
+    <div class="overlay" id="welcomeOverlay" aria-hidden="true">
+      <section
+        class="panel welcome-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcomeTitle"
+      >
+        <div class="panel-header">
+          <h3 id="welcomeTitle">Welcome</h3>
+          <button class="close-btn" id="closeWelcome" aria-label="Close">×</button>
+        </div>
+        <div class="welcome-content" id="welcomeContent">
+          <!-- Markdown content will be loaded here -->
+        </div>
+      </section>
+    </div>
+
     <!-- Confetti Canvas -->
     <canvas id="confettiCanvas"></canvas>
 
+    <script src="src/markdownParser.js"></script>
+    <script src="src/themeManager.js"></script>
     <!-- Theme Editor Modal -->
     <div class="overlay" id="themeEditorOverlay" aria-hidden="true">
       <section
