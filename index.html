@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Workday Countdown</title>
+
+    <style>
+      /*===== Reset & Base =====*/
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+
+      :root {
+        --bg: #0b0c0f;
+        --fg: #e9eef4;
+        --muted: #a7b0bf;
+        --card: #14161b;
+        --accent: #6ea8fe;
+        --accent-2: #b17aff;
+        --danger: #ff6b6b;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        --radius: 16px;
+        --gap: 16px;
+        --btn-radius: 12px;
+        --focus: 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+
+        --count-font: ui-monospace, SFMono-Regular, Menlo, Consolas,
+          "Liberation Mono", "DejaVu Sans Mono", monospace;
+        --ui-font: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
+          Cantarell, "Helvetica Neue", Arial, sans-serif;
+
+        --barFrom: var(--accent);
+        --barTo: var(--accent-2);
+        --barFrom-break: #999;
+        --barTo-break: #666;
+      }
+
+      body {
+        font-family: var(--ui-font);
+        color: var(--fg);
+        background: var(--bg);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-height: 100dvh;
+        transition: background 0.4s ease, color 0.4s ease;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      header,
+      footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--gap);
+        padding: 16px clamp(16px, 4vw, 40px);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        user-select: none;
+      }
+      .brand svg {
+        width: 28px;
+        height: 28px;
+        display: block;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+      }
+      footer .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      /*===== Center Stage =====*/
+      .center {
+        display: grid;
+        place-items: center;
+        padding: clamp(8px, 2vw, 24px);
+      }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+        max-width: 92vw;
+        margin: 0 auto;
+      }
+
+      /* Dual countdowns */
+      .countdown-big {
+        font-family: var(--count-font);
+        font-weight: 800;
+        letter-spacing: 0;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
+        font-kerning: none;
+        font-size: clamp(48px, calc(18vw + 8vh), 240px);
+        text-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        user-select: none;
+      }
+      .countdown-small {
+        font-family: var(--count-font);
+        font-weight: 800;
+        letter-spacing: 0;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
+        font-kerning: none;
+        font-size: clamp(18px, 3.5vw, 48px);
+        opacity: 0.9;
+      }
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: clamp(14px, 2.8vw, 18px);
+        line-height: 1.25;
+      }
+
+      /* Progress */
+      .progress-wrap {
+        width: min(900px, 92vw);
+        margin: 8px auto 0;
+      }
+      .progress {
+        position: relative;
+        background: color-mix(in oklab, var(--fg) 6%, transparent);
+        border-radius: 999px;
+        height: 18px;
+        overflow: hidden;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), var(--shadow);
+      }
+      .bar {
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(90deg, var(--barFrom), var(--barTo));
+        transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+          background 0.3s ease;
+      }
+      /* break-Farben anwenden */
+      .progress.is-break .bar {
+        --barFrom: var(--barFrom-break);
+        --barTo: var(--barTo-break);
+      }
+      .bar.is-break {
+        --barFrom: var(--barFrom-break);
+        --barTo: var(--barTo-break);
+      }
+      .bar::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          115deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.14) 45%,
+          rgba(255, 255, 255, 0.28) 50%,
+          rgba(255, 255, 255, 0.14) 55%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        left: -35%;
+        right: -35%;
+        -webkit-mask-image: linear-gradient(
+          90deg,
+          transparent 0%,
+          black 12%,
+          black 88%,
+          transparent 100%
+        );
+        mask-image: linear-gradient(
+          90deg,
+          transparent 0%,
+          black 12%,
+          black 88%,
+          transparent 100%
+        );
+        transform: translate3d(-120%, 0, 0);
+        animation: wave-move 2.4s ease-in-out infinite;
+        will-change: transform;
+        pointer-events: none;
+        mix-blend-mode: overlay;
+      }
+      @keyframes wave-move {
+        0% {
+          transform: translate3d(-120%, 0, 0);
+        }
+        60% {
+          transform: translate3d(120%, 0, 0);
+        }
+        100% {
+          transform: translate3d(120%, 0, 0);
+        }
+      }
+      .progress-meta {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        font-family: var(--count-font);
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
+        letter-spacing: 0;
+        line-height: 1.1;
+      }
+
+      /* Buttons & Inputs */
+      .btn {
+        border: 0;
+        background: color-mix(in oklab, var(--fg) 8%, transparent);
+        color: var(--fg);
+        padding: 12px 16px;
+        border-radius: var(--btn-radius);
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: transform 0.06s ease, background 0.2s ease,
+          box-shadow 0.2s ease;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+        min-height: 44px;
+        line-height: 1;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: translateY(0);
+      }
+      .btn.primary {
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        color: #0b0c0f;
+      }
+      .btn.danger {
+        background: color-mix(in oklab, var(--danger) 28%, transparent);
+        color: #fff;
+      }
+      .btn svg {
+        width: 18px;
+        height: 18px;
+        display: block;
+      }
+      label {
+        display: block;
+      }
+      .input,
+      select {
+        background: color-mix(in oklab, var(--fg) 6%, transparent);
+        color: var(--fg);
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 14px;
+        min-height: 44px;
+        outline: none;
+        width: 100%;
+        min-width: 0;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        line-height: 1.1;
+      }
+      .input:focus,
+      select:focus,
+      .btn:focus {
+        box-shadow: var(--focus);
+      }
+      input[type="time"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.85);
+        opacity: 0.9;
+      }
+
+      /* Settings Panel */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(6px);
+        background: rgba(0, 0, 0, 0.35);
+        padding: 20px;
+        z-index: 40;
+      }
+      .overlay.show {
+        display: flex;
+      }
+      .panel {
+        width: min(880px, 96vw);
+        max-height: 86vh;
+        overflow: auto;
+        background: var(--card);
+        color: var(--fg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: clamp(16px, 2.5vw, 28px);
+        display: grid;
+        gap: 18px;
+      }
+      .panel h3 {
+        margin: 0 0 6px;
+        font-size: 20px;
+      }
+
+      .row {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .row > * {
+        grid-column: span 12;
+      }
+
+      /* Cards */
+      .card {
+        background: color-mix(in oklab, var(--fg) 4.5%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 8%, transparent);
+        border-radius: 14px;
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-weight: 700;
+      }
+      .card-head .icon {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+      .card-grid > * {
+        grid-column: span 12;
+      }
+      @media (min-width: 720px) {
+        .col-2 {
+          grid-column: span 2;
+        }
+        .col-4 {
+          grid-column: span 4;
+        }
+        .col-6 {
+          grid-column: span 6;
+        }
+        .col-8 {
+          grid-column: span 8;
+        }
+        .col-12 {
+          grid-column: span 12;
+        }
+      }
+
+      /* Modern UI Refresh */
+      button,
+      .btn,
+      .theme-chip,
+      .shortcut,
+      .day-chip {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+      }
+
+      /* Segmented Control */
+      .segmented {
+        display: inline-grid;
+        grid-auto-flow: column;
+        gap: 6px;
+        padding: 6px;
+        border-radius: 14px;
+        width: fit-content;
+        background: color-mix(in oklab, var(--fg) 5.5%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+      }
+      .segmented input[type="radio"] {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .segmented label {
+        padding: 10px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: grid;
+        gap: 2px;
+        text-align: left;
+        color: var(--fg);
+        user-select: none;
+        transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .segmented label b {
+        font-weight: 800;
+      }
+      .segmented label small {
+        font-size: 12px;
+        opacity: 0.75;
+        font-weight: 600;
+      }
+      .segmented input:focus-visible + label {
+        box-shadow: var(--focus);
+      }
+      .segmented input:checked + label {
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        color: #0b0c0f;
+      }
+
+      /* Theme Pills */
+      .theme-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .theme-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 9999px;
+        background: color-mix(in oklab, var(--fg) 6%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+        font-weight: 800;
+        font-size: 13px;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.06s ease, background 0.2s ease,
+          border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .theme-chip:hover {
+        transform: translateY(-1px);
+      }
+      .theme-chip:focus-visible {
+        box-shadow: var(--focus);
+      }
+      .theme-chip.swatch {
+        width: 18px;
+        height: 12px;
+        border-radius: 999px;
+        box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.18);
+      }
+      .theme-chip[data-selected="true"] {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+        background: color-mix(in oklab, var(--accent) 12%, transparent);
+        border-color: transparent;
+      }
+      .theme-empty {
+        opacity: 0.7;
+        font-style: italic;
+        padding: 8px 0;
+      }
+
+      .theme-manager {
+        display: grid;
+        gap: 16px;
+      }
+      .theme-manager .field {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .theme-manager label {
+        flex: 0 0 150px;
+        font-weight: 600;
+      }
+      .theme-manager input[type="text"] {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+        background: color-mix(in oklab, var(--fg) 6%, transparent);
+        color: var(--fg);
+      }
+      .theme-manager input[type="color"] {
+        width: 50px;
+        height: 40px;
+        border-radius: 8px;
+        border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+        cursor: pointer;
+      }
+
+      /* Weekday Pills */
+      .days-wrap {
+        display: grid;
+        gap: 8px;
+      }
+      .days-shortcuts {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .shortcut {
+        border-radius: 9999px;
+        background: color-mix(in oklab, var(--fg) 6%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+        font-weight: 800;
+        font-size: 12px;
+        padding: 8px 10px;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.06s ease, background 0.2s ease,
+          border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .shortcut:hover {
+        transform: translateY(-1px);
+      }
+      .shortcut:focus-visible {
+        box-shadow: var(--focus);
+      }
+      .days-grid {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+      }
+      @media (max-width: 520px) {
+        .days-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+      .day-chip {
+        border: none;
+        outline: none;
+        box-shadow: none;
+        background: color-mix(in oklab, var(--fg) 6%, transparent);
+        border-radius: 9999px;
+        padding: 10px 0;
+        font-weight: 900;
+        font-size: 13px;
+        min-height: 40px;
+        display: grid;
+        place-items: center;
+        transition: background 0.15s ease, transform 0.06s ease,
+          color 0.15s ease;
+        cursor: pointer;
+      }
+      .day-chip.on,
+      .day-chip[aria-pressed="true"] {
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        color: #0b0c0f;
+      }
+      .day-chip:focus-visible {
+        outline: none;
+        box-shadow: var(--focus);
+      }
+
+      /* Breaks (von/bis) */
+      .breaks {
+        display: grid;
+        gap: 10px;
+      }
+      .break-row {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 12px;
+        align-items: end;
+        background: color-mix(in oklab, var(--fg) 5%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .break-row > .col-5 {
+        grid-column: span 5;
+      }
+      .break-row > .col-2 {
+        grid-column: span 2;
+      }
+      @media (max-width: 860px) {
+        .break-row > .col-5 {
+          grid-column: span 6;
+        }
+        .break-row > .col-2 {
+          grid-column: span 12;
+          justify-self: end;
+        }
+      }
+      @media (max-width: 640px) {
+        .break-row > * {
+          grid-column: span 12;
+        }
+        .break-row {
+          gap: 10px;
+          padding: 10px;
+        }
+      }
+
+      /* Reduced Motion */
+      @media (prefers-reduced-motion: reduce) {
+        .bar::after {
+          animation: none !important;
+          opacity: 0.35;
+        }
+        .btn:hover {
+          transform: none;
+        }
+      }
+
+      /* Confetti canvas */
+      #confettiCanvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 100;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M4 12a8 8 0 0 1 16 0"
+            stroke="url(#g1)"
+            stroke-width="2"
+            stroke-linecap="round"
+          ></path>
+          <path
+            d="M12 4v8l4 2"
+            stroke="url(#g2)"
+            stroke-width="2"
+            stroke-linecap="round"
+          ></path>
+          <defs>
+            <linearGradient id="g1" x1="4" y1="4" x2="20" y2="20">
+              <stop stop-color="var(--accent)" />
+              <stop offset="1" stop-color="var(--accent-2)" />
+            </linearGradient>
+            <linearGradient id="g2" x1="12" y1="4" x2="18" y2="14">
+              <stop stop-color="var(--accent)" />
+              <stop offset="1" stop-color="var(--accent-2)" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <span>Workday Countdown</span>
+      </div>
+      <div class="actions">
+        <button class="btn" id="openSettingsBtn" title="Einstellungen">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M3 6h10M3 12h18M3 18h12"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            ></path>
+            <rect
+              x="14"
+              y="4.5"
+              width="7"
+              height="3"
+              rx="1.5"
+              fill="currentColor"
+            ></rect>
+            <rect
+              x="7"
+              y="16.5"
+              width="7"
+              height="3"
+              rx="1.5"
+              fill="currentColor"
+            ></rect>
+          </svg>
+          Einstellungen
+        </button>
+      </div>
+    </header>
+
+    <main class="center">
+      <div class="stack">
+        <!-- Dual countdowns -->
+        <div id="countdownBig" class="countdown-big">–:–</div>
+        <div id="labelBig" class="subtitle">…</div>
+
+        <div id="countdownSmall" class="countdown-small">–:–</div>
+        <div id="labelSmall" class="subtitle">…</div>
+
+        <div class="progress-wrap" aria-hidden="false">
+          <div
+            class="progress"
+            id="progress"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <div class="bar" id="progressBar"></div>
+          </div>
+          <div class="progress-meta">
+            <span id="progressStart">–:–</span>
+            <span id="progressNow"></span>
+            <span id="progressEnd">–:–</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <span></span>
+      <div class="actions"><!-- (ehem. Presets entfernt) --></div>
+    </footer>
+
+    <!-- Settings Overlay -->
+    <div class="overlay" id="overlay" aria-hidden="true">
+      <section
+        class="panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="panelTitle"
+      >
+        <h3 id="panelTitle">Einstellungen</h3>
+
+        <!-- Anzeige: Segmented Control -->
+        <div class="card" id="layoutCard">
+          <div class="card-head">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M3 12h18M12 3v18"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+              <span>Anzeige</span>
+            </div>
+          </div>
+          <div class="segmented" role="tablist" aria-label="Anzeigeumschaltung">
+            <input
+              type="radio"
+              id="layout-total"
+              name="layout"
+              value="big-total"
+            />
+            <label for="layout-total">
+              <b>Gesamt</b>
+              <small>Kleiner: Pause</small>
+            </label>
+
+            <input
+              type="radio"
+              id="layout-break"
+              name="layout"
+              value="big-break"
+            />
+            <label for="layout-break">
+              <b>bis Pause</b>
+              <small>Kleiner: Gesamt</small>
+            </label>
+          </div>
+        </div>
+
+        <!-- Themes (Pills) -->
+        <div class="card" id="themeCard">
+          <div class="theme-grid" id="themeGrid"></div>
+        </div>
+
+        <div class="card">
+          <h3>Neues Theme hinzufügen / bearbeiten</h3>
+          <div class="theme-manager">
+            <div class="field">
+              <label for="themeName">Theme-Name</label>
+              <input
+                type="text"
+                id="themeName"
+                class="input"
+                placeholder="Theme # wird automatisch gesetzt"
+              />
+            </div>
+            <div class="field">
+              <label>Primärfarbe</label>
+              <input type="color" id="accentColor" value="#6ea8fe" />
+            </div>
+            <div class="field">
+              <label>Sekundärfarbe</label>
+              <input type="color" id="accent2Color" value="#b17aff" />
+            </div>
+            <div class="field">
+              <label>Hintergrundfarbe</label>
+              <input type="color" id="bgColor" value="#0b0c0f" />
+            </div>
+            <div class="field">
+              <label for="bgImage">Bild-URL (optional)</label>
+              <input
+                type="text"
+                id="bgImage"
+                class="input"
+                placeholder="https://a.jpg, https://b.jpg, … (Komma-getrennt für Daily)"
+              />
+            </div>
+
+            <!-- Bing Daily pro Theme -->
+            <div class="field">
+              <label for="useBingDaily">Tägliches Bild von Bing</label>
+              <input type="checkbox" id="useBingDaily" />
+            </div>
+            <div class="field" id="bingOptions" style="display: none">
+              <label for="bingMarket">Bing-Markt</label>
+              <select id="bingMarket" class="input">
+                <option value="de-DE" selected>de-DE (Deutschland)</option>
+                <option value="en-US">en-US (USA)</option>
+                <option value="en-GB">en-GB (UK)</option>
+                <option value="fr-FR">fr-FR (Frankreich)</option>
+                <option value="es-ES">es-ES (Spanien)</option>
+                <option value="it-IT">it-IT (Italien)</option>
+                <option value="ja-JP">ja-JP (Japan)</option>
+              </select>
+              <button class="btn" id="refreshBing">Bild aktualisieren</button>
+            </div>
+
+            <div class="actions">
+              <button id="addThemeBtn" class="btn primary">
+                Theme hinzufügen
+              </button>
+              <button id="cancelEditBtn" class="btn" style="display: none">
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Regeln -->
+        <div class="card" id="rulesCard">
+          <div class="card-head">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M7 3v3M17 3v3M4 9h16M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9Z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+              <span>Regeln</span>
+            </div>
+            <button class="btn" id="addRuleBtn2" title="Regel hinzufügen">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M12 5v14M5 12h14"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+              Hinzufügen
+            </button>
+          </div>
+
+          <div
+            id="rulesList"
+            class="list"
+            style="display: grid; gap: 12px"
+          ></div>
+        </div>
+
+        <div class="row">
+          <button class="btn primary" id="closePanel">Fertig</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <script>
+      (() => {
+        "use strict";
+
+        /* ===== Shortcuts ===== */
+        const $ = (s, p = document) => p.querySelector(s);
+        const $$ = (s, p = document) => Array.from(p.querySelectorAll(s));
+
+        /* ===== LocalStorage Keys ===== */
+        const LS_KEY_RULES = "workday.rules.v1";
+        const LS_KEY_LAYOUT = "workday.layout.v1"; // 'big-total' | 'big-break'
+        const THEME_STORE_KEY = "workday.themeStore.v2";
+        const LS_KEY_THEME = "workday.theme.v2";
+
+        /* ===== Days ===== */
+        const dayAbbr = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+        const weekdayOrder = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
+        /* ===== Helpers ===== */
+        const pad = (n) => String(n).padStart(2, "0");
+        const toHM = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        const escapeMap = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        };
+        const escapeHtml = (s = "") =>
+          s.replace(/[&<>"']/g, (c) => escapeMap[c]);
+        const escapeAttr = (s = "") => escapeHtml(s).replace(/"/g, "&quot;");
+
+        const parseHM = (hm) => {
+          const m = /^(\d{1,2}):(\d{2})$/.exec((hm ?? "").trim());
+          if (!m) return null;
+          const h = +m[1],
+            mi = +m[2];
+          if (h < 0 || h > 23 || mi < 0 || mi > 59) return null;
+          return { h, mi };
+        };
+        const midnightOf = (d) =>
+          new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+        /* ===== Layout ===== */
+        const loadLayout = () =>
+          localStorage.getItem(LS_KEY_LAYOUT) || "big-total";
+        const saveLayout = (l) => localStorage.setItem(LS_KEY_LAYOUT, l);
+
+        /* ===== THEME SYSTEM v2 (no presets, per-theme Bing, edit) ===== */
+        function loadThemeStore() {
+          try {
+            return (
+              JSON.parse(localStorage.getItem(THEME_STORE_KEY)) || {
+                themes: [],
+              }
+            );
+          } catch {
+            return { themes: [] };
+          }
+        }
+        function saveThemeStore(store) {
+          localStorage.setItem(THEME_STORE_KEY, JSON.stringify(store));
+        }
+        let themeStore = loadThemeStore();
+
+        // Fallback-Theme
+        if (!themeStore.themes || themeStore.themes.length === 0) {
+          themeStore.themes = [
+            {
+              key: "default",
+              name: "Theme #1",
+              palette: {
+                bg: "#0b0c0f",
+                fg: "#e9eef4",
+                muted: "#a7b0bf",
+                card: "#14161b",
+                accent: "#6ea8fe",
+                "accent-2": "#b17aff",
+                danger: "#ff6b6b",
+              },
+              bgDaily: false,
+            },
+          ];
+          saveThemeStore(themeStore);
+          saveTheme("default");
+        }
+
+        function loadTheme() {
+          return (
+            localStorage.getItem(LS_KEY_THEME) ||
+            themeStore.themes[0]?.key ||
+            null
+          );
+        }
+        function saveTheme(key) {
+          if (key) localStorage.setItem(LS_KEY_THEME, key);
+        }
+        function getThemeByKey(key) {
+          return themeStore.themes.find((t) => t.key === key) || null;
+        }
+
+        function getDayOfYear(d) {
+          const a = midnightOf(d),
+            b = new Date(d.getFullYear(), 0, 1);
+          return Math.floor((a - b) / 86400000) + 1;
+        }
+
+        /* === CORS-sichere Bing-Abfrage === */
+        const CORS_PROXIES = [
+          "https://api.allorigins.win/raw?url=",
+          "https://cors.isomorphic-git.org/",
+        ];
+
+        // ---- CORS-freundliche Proxys (keine Keys) ----
+        const CORS_PROXIES = [
+          // Liefert den Body direkt (Text) mit permissiven CORS
+          (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+          // Liefert JSON: { contents: "..." }  (falls /raw im Edgecase zickt)
+          (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+          // Einfacher CORS-Proxy mit plain body
+          (u) => `https://cors.isomorphic-git.org/${u}`,
+        ];
+
+        // Kleines Timeout-Helper, damit wir schnell weiterprobieren
+        function fetchWithTimeout(url, opts = {}, ms = 6000) {
+          return new Promise((resolve, reject) => {
+            const t = setTimeout(() => reject(new Error("timeout")), ms);
+            fetch(url, opts).then(
+              (r) => {
+                clearTimeout(t);
+                resolve(r);
+              },
+              (e) => {
+                clearTimeout(t);
+                reject(e);
+              }
+            );
+          });
+        }
+
+        /**
+         * Robust: Holt das Bing Image of the Day (JSON) und gibt eine absolute Bild-URL zurück.
+         * Versucht: direkt → AllOrigins /raw → AllOrigins /get → cors.isomorphic-git
+         */
+        async function fetchBingImage(mkt) {
+          const market = mkt || "de-DE";
+          const base = `https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=${encodeURIComponent(
+            market
+          )}`;
+
+          // Kandidaten: direkt + Proxys in Reihenfolge
+          const candidates = [
+            { url: base, type: "direct" },
+            ...CORS_PROXIES.map((fn) => ({ url: fn(base), type: "proxy" })),
+          ];
+
+          for (const c of candidates) {
+            try {
+              const res = await fetchWithTimeout(
+                c.url,
+                { cache: "no-store", credentials: "omit", mode: "cors" },
+                7000
+              );
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+              // AllOrigins /get liefert JSON { contents: "..." }, /raw liefert direkt den Body
+              let text = await res.text();
+              if (c.url.includes("/get?url=")) {
+                const wrapper = JSON.parse(text);
+                text = wrapper.contents;
+              }
+
+              const data = JSON.parse(text);
+              const img = data?.images?.[0];
+              const path =
+                img?.url ||
+                (img?.urlbase ? `${img.urlbase}_1920x1080.jpg` : null);
+              if (path) return "https://www.bing.com" + path;
+            } catch (e) {
+              console.warn("[BING] Fallback next ->", c.url, e?.message || e);
+              // try next
+            }
+          }
+          return null;
+        }
+
+        // Auswahl aus eigener Liste
+        function selectDailyBg(theme, now = new Date()) {
+          const list = Array.isArray(theme.bgImages)
+            ? theme.bgImages.filter(Boolean)
+            : [];
+          if (theme.bgDaily && list.length > 0) {
+            const mode = theme.bgMode || "dayOfYear";
+            let idx = 0;
+            if (mode === "random") {
+              const seedKey = "workday.bgSeed";
+              let seed = Number(localStorage.getItem(seedKey));
+              if (!Number.isFinite(seed)) {
+                seed = Math.floor(Math.random() * 1e6);
+                localStorage.setItem(seedKey, String(seed));
+              }
+              const dayKey =
+                Math.floor(midnightOf(now).getTime() / 86400000) ^ seed;
+              idx =
+                Math.abs((dayKey * 9301 + 49297) % 233280) % list.length | 0;
+            } else if (mode === "cycle") {
+              const dayIndex = Math.floor(midnightOf(now).getTime() / 86400000);
+              idx = ((dayIndex % list.length) + list.length) % list.length;
+            } else {
+              idx = (getDayOfYear(now) - 1) % list.length;
+            }
+            return list[idx];
+          }
+          return theme.bgImage || null;
+        }
+
+        // applyTheme (async wegen Bing)
+        async function applyTheme(key = loadTheme(), now = new Date()) {
+          const theme = key ? getThemeByKey(key) : null;
+          if (!theme) return;
+
+          const root = document.documentElement;
+          const body = document.body;
+          const p = theme.palette || {};
+
+          const set = (k, v) =>
+            v != null
+              ? root.style.setProperty(`--${k}`, v)
+              : root.style.removeProperty(`--${k}`);
+          set("bg", p.bg);
+          set("fg", p.fg);
+          set("muted", p.muted);
+          set("card", p.card);
+          set("accent", p.accent);
+          set("accent-2", p["accent-2"]);
+          set("danger", p.danger);
+
+          body.style.backgroundColor = p.bg || "";
+          body.style.color = p.fg || "";
+
+          // NEU/bleibt: Bing oder eigene Liste
+          let url = null;
+          if (theme.source === "bing") {
+            url = await fetchBingImage(theme.bingMarket || "de-DE");
+          } else {
+            url = selectDailyBg(theme, now);
+          }
+          body.style.backgroundImage = url ? `url("${url}")` : "";
+          body.style.backgroundSize = "cover";
+          body.style.backgroundPosition = "center";
+          body.style.backgroundRepeat = "no-repeat";
+        }
+
+        let dailyBgTimer = null;
+        function scheduleDailyBgRefresh() {
+          if (dailyBgTimer) clearTimeout(dailyBgTimer);
+          const now = new Date();
+          const next = new Date(now);
+          next.setHours(24, 0, 0, 0);
+          const ms = next - now + 1000;
+          dailyBgTimer = setTimeout(() => {
+            applyTheme(loadTheme(), new Date());
+            scheduleDailyBgRefresh();
+          }, ms);
+        }
+
+        const themeGrid = document.getElementById("themeGrid");
+
+        // Auto-Name: "Theme #N"
+        function nextThemeName() {
+          const nums = themeStore.themes
+            .map((t) => {
+              const m = /^Theme\s*#?\s*(\d+)$/i.exec(t.name || "");
+              return m ? parseInt(m[1], 10) : null;
+            })
+            .filter((n) => Number.isFinite(n));
+          const next = nums.length ? Math.max(...nums) + 1 : 1;
+          return `Theme #${next}`;
+        }
+        let themeNameAutofilled = false;
+        function fillDefaultThemeName(force = false) {
+          const el = document.getElementById("themeName");
+          if (!el) return;
+          if (force || el.value.trim() === "" || themeNameAutofilled) {
+            el.value = nextThemeName();
+            themeNameAutofilled = true;
+          }
+        }
+        $("#themeName")?.addEventListener("input", () => {
+          themeNameAutofilled = false;
+        });
+
+        function renderThemeChips() {
+          if (!themeGrid) return;
+          themeGrid.innerHTML = "";
+          const current = loadTheme();
+          for (const t of themeStore.themes) {
+            const chip = document.createElement("div");
+            chip.className = "theme-chip";
+            chip.dataset.theme = t.key;
+            chip.dataset.selected = t.key === current ? "true" : "false";
+            chip.setAttribute("aria-pressed", chip.dataset.selected);
+
+            const c1 = t.palette?.accent || "#666";
+            const c2 = t.palette?.["accent-2"] || "#999";
+            const srcLabel =
+              t.source === "bing" ? "bing" : t.bgDaily ? "daily" : "static";
+
+            chip.innerHTML = `
+          <span class="theme-chip swatch" style="background: linear-gradient(90deg, ${c1}, ${c2});"></span>
+          <span>${escapeHtml(t.name)}</span>
+          <span style="margin-left:8px;opacity:.65;">(${srcLabel})</span>
+          <button type="button" class="edit-theme" title="Theme bearbeiten" style="margin-left:10px;background:transparent;border:0;color:inherit;opacity:.9;">✎</button>
+          <button type="button" class="del-theme"  title="Theme löschen"    style="margin-left:4px;background:transparent;border:0;color:inherit;opacity:.8;">✕</button>
+        `;
+
+            // Aktivieren
+            chip.addEventListener("click", (e) => {
+              const target = e.target;
+              if (
+                target &&
+                target.closest &&
+                (target.closest(".del-theme") || target.closest(".edit-theme"))
+              )
+                return;
+              saveTheme(t.key);
+              applyTheme(t.key);
+              updateThemeSelection();
+            });
+            // Bearbeiten
+            chip
+              .querySelector(".edit-theme")
+              ?.addEventListener("click", (e) => {
+                e.stopPropagation();
+                startEditTheme(t.key);
+              });
+            // Löschen
+            chip.querySelector(".del-theme")?.addEventListener("click", (e) => {
+              e.stopPropagation();
+              deleteCustomTheme(t.key);
+            });
+
+            themeGrid.appendChild(chip);
+          }
+          if (themeStore.themes.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "theme-empty";
+            empty.textContent = "Noch kein Theme. Füge eines hinzu.";
+            themeGrid.appendChild(empty);
+          }
+        }
+        function updateThemeSelection() {
+          const current = loadTheme();
+          $$(".theme-chip", themeGrid).forEach((chip) => {
+            const sel = chip.dataset.theme === current;
+            chip.dataset.selected = sel ? "true" : "false";
+            chip.setAttribute("aria-pressed", sel ? "true" : "false");
+          });
+        }
+
+        function addCustomTheme(input) {
+          const base = (input.key || input.name || "theme")
+            .toLowerCase()
+            .replace(/\s+/g, "-")
+            .replace(/[^a-z0-9-_]/g, "");
+          const unique = themeStore.themes.some((t) => t.key === base);
+          const key = unique
+            ? `${base}-${crypto.randomUUID().slice(0, 6)}`
+            : base;
+
+          let bgImages = [];
+          if (Array.isArray(input.bgImages))
+            bgImages = input.bgImages.filter(Boolean);
+          else if (typeof input.bgImagesStr === "string")
+            bgImages = input.bgImagesStr
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
+          else if (
+            typeof input.bgImage === "string" &&
+            input.bgImage.includes(",")
+          )
+            bgImages = input.bgImage
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
+
+          const theme = {
+            key,
+            name: input.name || nextThemeName(),
+            palette: {
+              bg: input.bg ?? "#0b0c0f",
+              fg: input.fg ?? "#e9eef4",
+              muted: input.muted ?? "#a7b0bf",
+              card: input.card ?? "#14161b",
+              accent: input.accent ?? "#6ea8fe",
+              "accent-2": input.accent2 ?? "#b17aff",
+              danger: input.danger ?? "#ff6b6b",
+            },
+            source: input.source || null, // 'bing' | null
+            bingMarket: input.bingMarket || null,
+
+            bgImage:
+              input.bgImage && !input.bgImage.includes(",")
+                ? input.bgImage
+                : null,
+            bgImages,
+            bgDaily: input.bgDaily ?? bgImages.length > 1,
+            bgMode: input.bgMode || "dayOfYear",
+          };
+
+          if (!theme.bgImage && theme.bgImages.length > 0)
+            theme.bgImage = theme.bgImages[0];
+
+          themeStore.themes.push(theme);
+          saveThemeStore(themeStore);
+          saveTheme(theme.key);
+          applyTheme(theme.key);
+          renderThemeChips();
+          updateThemeSelection();
+
+          // Nächsten Defaultnamen setzen
+          fillDefaultThemeName(true);
+        }
+        function deleteCustomTheme(key) {
+          const idx = themeStore.themes.findIndex((t) => t.key === key);
+          if (idx > -1) {
+            themeStore.themes.splice(idx, 1);
+            saveThemeStore(themeStore);
+            if (loadTheme() === key) {
+              const fallback = themeStore.themes[0]?.key || null;
+              if (fallback) {
+                saveTheme(fallback);
+                applyTheme(fallback);
+              } else {
+                localStorage.removeItem(LS_KEY_THEME);
+              }
+            }
+            renderThemeChips();
+            updateThemeSelection();
+            fillDefaultThemeName(true);
+          }
+        }
+
+        // ===== Theme edit =====
+        let editingKey = null;
+
+        function startEditTheme(key) {
+          const t = getThemeByKey(key);
+          if (!t) return;
+          editingKey = key;
+
+          const nameEl = $("#themeName");
+          const acc1El = $("#accentColor");
+          const acc2El = $("#accent2Color");
+          const bgColEl = $("#bgColor");
+          const bgStrEl = $("#bgImage");
+          const useBingEl = $("#useBingDaily");
+          const marketSel = $("#bingMarket");
+          const optBox = $("#bingOptions");
+
+          if (nameEl) nameEl.value = t.name || "";
+          if (acc1El) acc1El.value = t.palette?.accent || "#6ea8fe";
+          if (acc2El) acc2El.value = t.palette?.["accent-2"] || "#b17aff";
+          if (bgColEl) bgColEl.value = t.palette?.bg || "#0b0c0f";
+
+          const imgs =
+            t.bgImages && t.bgImages.length
+              ? t.bgImages.join(", ")
+              : t.bgImage || "";
+          if (bgStrEl) bgStrEl.value = imgs;
+
+          const isBing = t.source === "bing";
+          if (useBingEl) useBingEl.checked = isBing;
+          if (optBox) optBox.style.display = isBing ? "" : "none";
+          if (marketSel && t.bingMarket) marketSel.value = t.bingMarket;
+
+          const addBtn = $("#addThemeBtn");
+          const cancel = $("#cancelEditBtn");
+          if (addBtn) {
+            addBtn.textContent = "Theme speichern";
+            addBtn.dataset.mode = "edit";
+          }
+          if (cancel) cancel.style.display = "";
+        }
+
+        function finishEditMode() {
+          const addBtn = $("#addThemeBtn");
+          const cancel = $("#cancelEditBtn");
+          if (addBtn) {
+            addBtn.textContent = "Theme hinzufügen";
+            addBtn.dataset.mode = "";
+          }
+          if (cancel) cancel.style.display = "none";
+          editingKey = null;
+        }
+
+        function updateTheme(key, input) {
+          const t = getThemeByKey(key);
+          if (!t) return;
+
+          t.name = input.name || t.name;
+          t.palette = t.palette || {};
+          if (input.bg) t.palette.bg = input.bg;
+          if (input.accent) t.palette.accent = input.accent;
+          if (input.accent2) t.palette["accent-2"] = input.accent2;
+
+          if (input.source === "bing") {
+            t.source = "bing";
+            t.bingMarket = input.bingMarket || t.bingMarket || "de-DE";
+            t.bgImage = null;
+            t.bgImages = [];
+            t.bgDaily = true;
+          } else {
+            t.source = null;
+            t.bingMarket = null;
+            let bgImages = [];
+            if (Array.isArray(input.bgImages))
+              bgImages = input.bgImages.filter(Boolean);
+            else if (typeof input.bgImagesStr === "string")
+              bgImages = input.bgImagesStr
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            t.bgImages = bgImages;
+            t.bgImage =
+              !bgImages.length && input.bgImage
+                ? input.bgImage
+                : bgImages[0] || null;
+            t.bgDaily = bgImages.length > 1;
+          }
+
+          saveThemeStore(themeStore);
+          renderThemeChips();
+          updateThemeSelection();
+          if (loadTheme() === key) applyTheme(key);
+          finishEditMode();
+        }
+
+        // UI: Bing-Optionen togglen (anzeigen/verbergen)
+        $("#useBingDaily")?.addEventListener("change", (e) => {
+          const on = e.target.checked;
+          const box = $("#bingOptions");
+          if (box) box.style.display = on ? "" : "none";
+        });
+
+        // Jetzt aktualisieren (Bing neu holen, falls Theme auf Bing steht)
+        $("#refreshBing")?.addEventListener("click", async () => {
+          const current = getThemeByKey(loadTheme());
+          if (!current || current.source !== "bing") return;
+          await applyTheme(current.key);
+        });
+
+        // Add/Save Theme Button
+        $("#addThemeBtn")?.addEventListener("click", async () => {
+          const addBtn = $("#addThemeBtn");
+          const mode = addBtn?.dataset.mode || "";
+
+          const nameEl = $("#themeName");
+          const nameRaw = nameEl ? nameEl.value.trim() : "";
+          const name = nameRaw || nextThemeName();
+
+          const accent = $("#accentColor")?.value;
+          const accent2 = $("#accent2Color")?.value;
+          const bgCol = $("#bgColor")?.value;
+          const bgStrEl = $("#bgImage");
+          const bgStr = bgStrEl ? bgStrEl.value.trim() : "";
+
+          const useBing = $("#useBingDaily")?.checked;
+          const bingMkt = $("#bingMarket")?.value || "de-DE";
+
+          if (mode === "edit" && editingKey) {
+            updateTheme(editingKey, {
+              name,
+              accent,
+              accent2,
+              bg: bgCol || undefined,
+              source: useBing ? "bing" : null,
+              bingMarket: useBing ? bingMkt : null,
+              bgImagesStr: useBing ? "" : bgStr,
+              bgDaily: !useBing,
+              bgMode: "dayOfYear",
+            });
+          } else {
+            if (useBing) {
+              addCustomTheme({
+                name,
+                accent,
+                accent2,
+                bg: bgCol || undefined,
+                source: "bing",
+                bingMarket: bingMkt,
+                bgDaily: true,
+                bgMode: "dayOfYear",
+              });
+            } else {
+              addCustomTheme({
+                name,
+                accent,
+                accent2,
+                bg: bgCol || undefined,
+                bgImagesStr: bgStr,
+                bgDaily: true,
+                bgMode: "dayOfYear",
+              });
+            }
+          }
+        });
+
+        // Abbrechen
+        $("#cancelEditBtn")?.addEventListener("click", () => {
+          finishEditMode();
+          // Felder zurücksetzen
+          fillDefaultThemeName(true);
+          const bgStrEl = $("#bgImage");
+          if (bgStrEl) bgStrEl.value = "";
+          const cb = $("#useBingDaily");
+          const box = $("#bingOptions");
+          if (cb) cb.checked = false;
+          if (box) box.style.display = "none";
+        });
+
+        function renderThemeListUI() {
+          renderThemeChips();
+          updateThemeSelection();
+          fillDefaultThemeName(true);
+        }
+
+        /* ===== Settings Overlay ===== */
+        const overlay = $("#overlay");
+        const openSettings = () => {
+          overlay?.classList.add("show");
+          overlay?.setAttribute("aria-hidden", "false");
+        };
+        const closeSettings = () => {
+          overlay?.classList.remove("show");
+          overlay?.setAttribute("aria-hidden", "true");
+        };
+        $("#openSettingsBtn")?.addEventListener("click", openSettings);
+        $("#closePanel")?.addEventListener("click", closeSettings);
+        overlay?.addEventListener("mousedown", (e) => {
+          if (e.target === overlay) closeSettings();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && overlay?.classList.contains("show"))
+            closeSettings();
+        });
+
+        /* ===== Rules (load/save/default) ===== */
+        const defaultRules = [
+          {
+            id: crypto.randomUUID(),
+            name: "Standard",
+            days: "Mo,Di,Mi,Do,Fr",
+            start: "09:00",
+            end: "17:00",
+            breaks: [{ id: crypto.randomUUID(), start: "12:30", end: "13:00" }],
+          },
+        ];
+        function loadRules() {
+          try {
+            const r =
+              JSON.parse(localStorage.getItem(LS_KEY_RULES)) || defaultRules;
+            r.forEach((rule) => {
+              if (!Array.isArray(rule.breaks)) rule.breaks = [];
+            });
+            return r;
+          } catch {
+            return defaultRules;
+          }
+        }
+        function saveRules(r) {
+          localStorage.setItem(LS_KEY_RULES, JSON.stringify(r));
+        }
+        let rules = loadRules();
+
+        /* ===== Days helpers for rules ===== */
+        const normalizeDaysString = (str) =>
+          (str || "")
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+        const daysSetFromRule = (rule) =>
+          new Set(normalizeDaysString(rule.days));
+        const daysStringFromSet = (set) =>
+          weekdayOrder.filter((d) => set.has(d)).join(",");
+
+        /* ===== Breaks / Segments ===== */
+        const normalizeBreaks = (breaks, startDate, endDate) => {
+          const res = [];
+          const S = +startDate,
+            E = +endDate;
+          for (const b of breaks || []) {
+            const sHM = parseHM(b.start),
+              eHM = parseHM(b.end);
+            if (!sHM || !eHM) continue;
+            const s = new Date(startDate);
+            s.setHours(sHM.h, sHM.mi, 0, 0);
+            const e = new Date(startDate);
+            e.setHours(eHM.h, eHM.mi, 0, 0);
+            if (e <= s) continue;
+            const cs = Math.max(+s, S),
+              ce = Math.min(+e, E);
+            if (ce - cs > 0)
+              res.push({ start: new Date(cs), end: new Date(ce) });
+          }
+          res.sort((a, b) => a.start - b.start);
+          const merged = [];
+          for (const seg of res) {
+            if (!merged.length || seg.start > merged[merged.length - 1].end) {
+              merged.push({ ...seg });
+            } else {
+              const last = merged[merged.length - 1];
+              if (seg.end > last.end) last.end = seg.end;
+            }
+          }
+          return merged;
+        };
+
+        const buildSegments = (rule, baseDate) => {
+          const sHM = parseHM(rule.start),
+            eHM = parseHM(rule.end);
+          if (!sHM || !eHM)
+            return { windowStart: null, windowEnd: null, segments: [] };
+          const start = new Date(baseDate);
+          start.setHours(sHM.h, sHM.mi, 0, 0);
+          const end = new Date(baseDate);
+          end.setHours(eHM.h, eHM.mi, 0, 0);
+          if (end <= start) end.setDate(end.getDate() + 1); // overnight
+          const br = normalizeBreaks(rule.breaks, start, end);
+          const segs = [];
+          let cursor = new Date(start);
+          for (const b of br) {
+            if (b.start > cursor)
+              segs.push({
+                type: "work",
+                start: new Date(cursor),
+                end: new Date(b.start),
+              });
+            segs.push({
+              type: "break",
+              start: new Date(b.start),
+              end: new Date(b.end),
+            });
+            cursor = new Date(b.end);
+          }
+          if (cursor < end)
+            segs.push({
+              type: "work",
+              start: new Date(cursor),
+              end: new Date(end),
+            });
+          return { windowStart: start, windowEnd: end, segments: segs };
+        };
+
+        /* ===== Render Rules UI ===== */
+        const rulesList = $("#rulesList");
+
+        function breakRowHtml(id, s = "12:30", e = "13:00") {
+          return `
+        <div class="break-row" data-id="${escapeAttr(id)}">
+          <div class="col-5">
+            <label>Von
+              <input class="inp-break-start input" type="time" value="${escapeAttr(
+                s
+              )}" />
+            </label>
+          </div>
+          <div class="col-5">
+            <label>Bis
+              <input class="inp-break-end input" type="time" value="${escapeAttr(
+                e
+              )}" />
+            </label>
+          </div>
+          <div class="col-2" style="display:flex;gap:8px;justify-content:flex-end;">
+            <button type="button" class="btn icon del-break" title="Entfernen" aria-label="Pause entfernen">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
+                <path d="M4 7h16M9 7V5h6v2m-9 0 1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"
+                      stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `;
+        }
+
+        function renderRules() {
+          const container = rulesList;
+          if (!container) return;
+          container.innerHTML = "";
+
+          rules.forEach((rule) => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.dataset.id = rule.id;
+
+            const dayChips = weekdayOrder
+              .map(
+                (d) =>
+                  `<button type="button" class="day-chip" data-day="${d}" aria-pressed="false">${d}</button>`
+              )
+              .join("");
+
+            const daysHTML = `
+          <div class="days-wrap">
+            <div class="days-shortcuts">
+              <button type="button" class="shortcut" data-days="Mo,Di,Mi,Do,Fr">Mo–Fr</button>
+              <button type="button" class="shortcut" data-days="Sa,So">Sa–So</button>
+              <button type="button" class="shortcut" data-days="Mo,Di,Mi,Do,Fr,Sa,So">Alle</button>
+              <button type="button" class="shortcut" data-days="">Keine</button>
+            </div>
+            <div class="days-grid">${dayChips}</div>
+          </div>
+        `;
+
+            const breaksRows = (rule.breaks || [])
+              .map((b) => breakRowHtml(b.id, b.start, b.end))
+              .join("");
+
+            card.innerHTML = `
+          <div class="card-head">
+            <div class="icon" style="display:inline-flex;align-items:center;gap:8px;">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
+                <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="title">${escapeHtml(
+                rule.name || "Ohne Titel"
+              )}</span>
+            </div>
+            <button class="btn danger btn-delete" title="Regel löschen" type="button">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
+                <path d="M4 7h16M9 7V5h6v2m-9 0 1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"
+                      stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Löschen
+            </button>
+          </div>
+
+          <div class="card-grid">
+            <div class="col-4">
+              <label>Name
+                <input class="inp-name input" type="text" value="${escapeAttr(
+                  rule.name
+                )}" placeholder="z. B. Büro" />
+              </label>
+            </div>
+
+            <div class="col-8">
+              <label>Wochentage
+                ${daysHTML}
+              </label>
+            </div>
+
+            <div class="col-2">
+              <label>Start
+                <input class="inp-start input" type="time" value="${escapeAttr(
+                  rule.start
+                )}" />
+              </label>
+            </div>
+            <div class="col-2">
+              <label>Ende
+                <input class="inp-end input" type="time" value="${escapeAttr(
+                  rule.end
+                )}" />
+              </label>
+            </div>
+
+            <div class="col-12">
+              <label>Pausen
+                <div class="breaks">
+                  ${breaksRows}
+                  <div>
+                    <button type="button" class="btn add-break">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                      Pause hinzufügen
+                    </button>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+        `;
+
+            container.appendChild(card);
+
+            // Events
+            $(".btn-delete", card)?.addEventListener("click", () => {
+              rules = rules.filter((r) => r.id !== rule.id);
+              saveRules(rules);
+              renderRules();
+            });
+
+            $(".inp-name", card)?.addEventListener("input", (e) => {
+              rule.name = e.target.value;
+              saveRules(rules);
+              $(".title", card).textContent = rule.name || "Ohne Titel";
+            });
+
+            $(".inp-start", card)?.addEventListener("change", (e) => {
+              rule.start = e.target.value || "09:00";
+              saveRules(rules);
+            });
+
+            $(".inp-end", card)?.addEventListener("change", (e) => {
+              rule.end = e.target.value || "17:00";
+              saveRules(rules);
+            });
+
+            // Day chips
+            const selected = daysSetFromRule(rule);
+            $$(".day-chip", card).forEach((btn) => {
+              const d = btn.dataset.day;
+              const on = selected.has(d);
+              btn.classList.toggle("on", on);
+              btn.setAttribute("aria-pressed", on ? "true" : "false");
+
+              btn.addEventListener("click", () => {
+                const nowOn = btn.classList.toggle("on");
+                btn.setAttribute("aria-pressed", nowOn ? "true" : "false");
+                if (nowOn) selected.add(d);
+                else selected.delete(d);
+                rule.days = daysStringFromSet(selected);
+                saveRules(rules);
+              });
+            });
+
+            // Shortcuts
+            $$(".shortcut", card).forEach((sc) => {
+              sc.addEventListener("click", () => {
+                const days = (sc.dataset.days || "").split(",").filter(Boolean);
+                const set = new Set(days);
+                $$(".day-chip", card).forEach((btn) => {
+                  const on = set.has(btn.dataset.day);
+                  btn.classList.toggle("on", on);
+                  btn.setAttribute("aria-pressed", on ? "true" : "false");
+                });
+                rule.days = daysStringFromSet(set);
+                saveRules(rules);
+              });
+            });
+
+            // Breaks
+            $(".add-break", card)?.addEventListener("click", () => {
+              const id = crypto.randomUUID();
+              rule.breaks = rule.breaks || [];
+              rule.breaks.push({ id, start: "12:30", end: "13:00" });
+              saveRules(rules);
+              renderRules();
+              const row = rulesList.querySelector(
+                `.break-row[data-id="${id}"]`
+              );
+              row?.querySelector(".inp-break-start")?.focus();
+            });
+
+            $$(".break-row", card).forEach((row) => {
+              const bid = row.dataset.id;
+              $(".del-break", row)?.addEventListener("click", () => {
+                rule.breaks = (rule.breaks || []).filter((b) => b.id !== bid);
+                saveRules(rules);
+                renderRules();
+              });
+              $(".inp-break-start", row)?.addEventListener("change", (e) => {
+                const b = (rule.breaks || []).find((x) => x.id === bid);
+                if (!b) return;
+                b.start = e.target.value || b.start;
+                saveRules(rules);
+              });
+              $(".inp-break-end", row)?.addEventListener("change", (e) => {
+                const b = (rule.breaks || []).find((x) => x.id === bid);
+                if (!b) return;
+                b.end = e.target.value || b.end;
+                saveRules(rules);
+              });
+            });
+          });
+        }
+
+        // Add Rule (UI-Button)
+        function addRule() {
+          const newRule = {
+            id: crypto.randomUUID(),
+            name: "Neue Regel",
+            days: "Mo,Di,Mi,Do,Fr",
+            start: "09:00",
+            end: "17:00",
+            breaks: [],
+          };
+          rules.push(newRule);
+          saveRules(rules);
+          renderRules();
+          if (!overlay?.classList.contains("show")) openSettings();
+          setTimeout(() => {
+            const card = $("#rulesList")?.querySelector(
+              `.card[data-id="${newRule.id}"]`
+            );
+            card?.scrollIntoView({ behavior: "smooth", block: "center" });
+            card?.querySelector(".inp-name")?.focus();
+          }, 100);
+        }
+        $("#addRuleBtn2")?.addEventListener("click", addRule);
+
+        /* ===== Countdown / Progress ===== */
+        const countdownBig = $("#countdownBig");
+        const countdownSmall = $("#countdownSmall");
+        const labelBig = $("#labelBig");
+        const labelSmall = $("#labelSmall");
+        const progressEl = $("#progress");
+        const progressBar = $("#progressBar");
+        const progressStart = $("#progressStart");
+        const progressEnd = $("#progressEnd");
+
+        const normalizeDays = (str) =>
+          (str || "")
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+        function findActiveOrNext(now = new Date()) {
+          const today = midnightOf(now);
+          const dayStr = dayAbbr[now.getDay()];
+          const candidates = [];
+
+          for (const r of rules) {
+            const days = normalizeDays(r.days);
+            const built = buildSegments(r, today);
+            if (!built.windowStart) continue;
+            if (days.includes(dayStr) || now < built.windowStart) {
+              candidates.push({ rule: r, ...built });
+            }
+          }
+
+          // during
+          for (const c of candidates) {
+            const seg = c.segments.find((s) => now >= s.start && now <= s.end);
+            if (seg) {
+              return {
+                type: "during",
+                mode: seg.type,
+                rule: c.rule,
+                start: seg.start,
+                end: seg.end,
+                segments: c.segments,
+                windowStart: c.windowStart,
+                windowEnd: c.windowEnd,
+              };
+            }
+          }
+
+          // next today
+          const nextToday = candidates
+            .flatMap((c) =>
+              c.segments
+                .filter((s) => s.start > now)
+                .map((s) => ({ seg: s, c }))
+            )
+            .sort((a, b) => a.seg.start - b.seg.start)[0];
+
+          if (nextToday) {
+            const { c, seg } = nextToday;
+            return {
+              type: "upcoming",
+              mode: seg.type,
+              rule: c.rule,
+              start: seg.start,
+              end: seg.end,
+              segments: c.segments,
+              windowStart: c.windowStart,
+              windowEnd: c.windowEnd,
+            };
+          }
+
+          // next days
+          for (let i = 1; i <= 7; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() + i);
+            const day = dayAbbr[d.getDay()];
+            const futureRules = rules.filter((r) =>
+              normalizeDays(r.days).includes(day)
+            );
+            const allSegs = futureRules
+              .flatMap((r) => {
+                const b = buildSegments(r, d);
+                return b.segments.map((s) => ({
+                  rule: r,
+                  seg: s,
+                  windowStart: b.windowStart,
+                  windowEnd: b.windowEnd,
+                }));
+              })
+              .sort((a, b) => a.seg.start - b.seg.start);
+
+            if (allSegs[0]) {
+              const f = allSegs[0];
+              return {
+                type: "upcoming",
+                mode: f.seg.type,
+                rule: f.rule,
+                start: f.seg.start,
+                end: f.seg.end,
+                segments: buildSegments(f.rule, d).segments,
+                windowStart: f.windowStart,
+                windowEnd: f.windowEnd,
+              };
+            }
+          }
+
+          return { type: "none" };
+        }
+
+        function formatDuration(ms) {
+          const totalSec = Math.max(0, Math.floor(ms / 1000));
+          const h = Math.floor(totalSec / 3600);
+          const m = Math.floor((totalSec % 3600) / 60);
+          const s = totalSec % 60;
+          return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+        }
+
+        function nextPauseTarget(state, now) {
+          const segs = state.segments || [];
+          if (state.mode === "break") {
+            return { target: state.end, label: "Pause-Ende" };
+          }
+          const ref = state.type === "upcoming" ? state.start : now;
+          const nb = segs.find((s) => s.type === "break" && s.start > ref);
+          if (nb) return { target: nb.start, label: "Pause" };
+          return { target: state.windowEnd, label: "Feierabend" };
+        }
+
+        const stateMem = { lastType: "none", lastRuleId: null, lastMode: null };
+
+        function tick() {
+          const now = new Date();
+          const layout = loadLayout(); // 'big-total'|'big-break'
+          const st = findActiveOrNext(now);
+
+          // Confetti on transitions
+          if (
+            st.type !== stateMem.lastType ||
+            st.rule?.id !== stateMem.lastRuleId ||
+            st.mode !== stateMem.lastMode
+          ) {
+            if (
+              (stateMem.lastType === "upcoming" && st.type === "during") ||
+              (stateMem.lastType === "during" && st.type !== "during")
+            ) {
+              fireConfetti(120);
+            }
+            stateMem.lastType = st.type;
+            stateMem.lastRuleId = st.rule?.id || null;
+            stateMem.lastMode = st.mode || null;
+          }
+
+          if (st.type === "during" || st.type === "upcoming") {
+            // totals
+            const totalRemain = st.windowEnd - now;
+            const totalLabel = `Gesamt bis Ende: ${toHM(st.windowEnd)} (${
+              st.rule.name || "Arbeit"
+            })`;
+
+            // part (pause/feierabend)
+            const np = nextPauseTarget(st, now);
+            const partRemain = np.target - now;
+            const partLabel = `Bis ${np.label}: ${toHM(np.target)} (${
+              st.rule.name || "Arbeit"
+            })`;
+
+            if (layout === "big-total") {
+              if (countdownBig)
+                countdownBig.textContent = formatDuration(totalRemain);
+              if (labelBig) labelBig.textContent = totalLabel;
+              if (countdownSmall)
+                countdownSmall.textContent = formatDuration(partRemain);
+              if (labelSmall) labelSmall.textContent = partLabel;
+            } else {
+              if (countdownBig)
+                countdownBig.textContent = formatDuration(partRemain);
+              if (labelBig) labelBig.textContent = partLabel;
+              if (countdownSmall)
+                countdownSmall.textContent = formatDuration(totalRemain);
+              if (labelSmall) labelSmall.textContent = totalLabel;
+            }
+
+            // progress
+            const total = st.windowEnd - st.windowStart;
+            const done = now - st.windowStart;
+            const pct = Math.max(0, Math.min(100, (done / total) * 100));
+
+            if (progressBar) progressBar.style.width = pct.toFixed(2) + "%";
+            progressEl?.setAttribute("aria-valuenow", pct.toFixed(0));
+            if (progressStart) progressStart.textContent = toHM(st.windowStart);
+            if (progressEnd) progressEnd.textContent = toHM(st.windowEnd);
+
+            // break style
+            progressEl?.classList.toggle("is-break", st.mode === "break");
+            progressBar?.classList.toggle("is-break", st.mode === "break");
+          } else {
+            if (countdownBig) countdownBig.textContent = "–:–";
+            if (labelBig) labelBig.textContent = "Keine aktive/kommende Regel";
+            if (countdownSmall) countdownSmall.textContent = "–:–";
+            if (labelSmall) labelSmall.textContent = "—";
+            if (progressBar) progressBar.style.width = "0%";
+            progressEl?.setAttribute("aria-valuenow", "0");
+            if (progressStart) progressStart.textContent = "–:–";
+            if (progressEnd) progressEnd.textContent = "–:–";
+            progressEl?.classList.remove("is-break");
+            progressBar?.classList.remove("is-break");
+          }
+
+          const pn = $("#progressNow");
+          if (pn) pn.textContent = "Jetzt";
+        }
+
+        /* ===== Layout Radios ===== */
+        function initLayoutRadios() {
+          const current = loadLayout();
+          const r = document.querySelector(
+            `input[name="layout"][value="${current}"]`
+          );
+          if (r) r.checked = true;
+          $$('input[name="layout"]').forEach((el) => {
+            el.addEventListener("change", (e) => {
+              saveLayout(e.target.value);
+              tick(); // sofort neu zeichnen
+            });
+          });
+        }
+
+        /* ===== Confetti (lightweight) ===== */
+        const confettiCanvas = document.getElementById("confettiCanvas");
+        const ctx = confettiCanvas?.getContext?.("2d") || null;
+        let confettiRAF = null;
+        let confettiParticles = [];
+
+        function resizeCanvas() {
+          if (!confettiCanvas) return;
+          confettiCanvas.width = window.innerWidth;
+          confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resizeCanvas, { passive: true });
+        resizeCanvas();
+
+        function makeParticle() {
+          const colors = [
+            "#FFD166",
+            "#06D6A0",
+            "#118AB2",
+            "#EF476F",
+            getComputedStyle(document.body)
+              .getPropertyValue("--accent")
+              .trim() || "#6ea8fe",
+            getComputedStyle(document.body)
+              .getPropertyValue("--accent-2")
+              .trim() || "#b17aff",
+          ];
+          const w = confettiCanvas?.width || window.innerWidth || 0;
+          return {
+            x: Math.random() * w,
+            y: -10,
+            r: 2 + Math.random() * 4,
+            s: 0.8 + Math.random() * 1.6,
+            a: Math.random() * Math.PI * 2,
+            v: 0.5 + Math.random() * 0.8,
+            c: colors[(Math.random() * colors.length) | 0],
+            rot: Math.random() * 360,
+            rotSpd: (Math.random() - 0.5) * 6,
+          };
+        }
+
+        function stepConfetti() {
+          if (!ctx || !confettiCanvas) {
+            confettiParticles = [];
+            confettiRAF = null;
+            return;
+          }
+          const w = confettiCanvas.width,
+            h = confettiCanvas.height;
+          ctx.clearRect(0, 0, w, h);
+          confettiParticles.forEach((p) => {
+            p.y += p.s + 0.4;
+            p.x += Math.cos(p.a) * 0.8;
+            p.a += 0.04;
+            p.rot += p.rotSpd;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rot * Math.PI) / 180);
+            ctx.fillStyle = p.c;
+            ctx.globalAlpha = 0.9;
+            ctx.fillRect(-p.r, -p.r, p.r * 2, p.r * 2);
+            ctx.restore();
+          });
+          confettiParticles = confettiParticles.filter((p) => p.y < h + 10);
+          if (confettiParticles.length > 0) {
+            confettiRAF = requestAnimationFrame(stepConfetti);
+          } else {
+            confettiRAF = null;
+            ctx.clearRect(0, 0, w, h);
+          }
+        }
+
+        function fireConfetti(amount = 100, durationMs = 1500) {
+          if (!ctx || !confettiCanvas) return;
+          const start = performance.now();
+          const spawn = () => {
+            const now = performance.now();
+            if (now - start < durationMs) {
+              const batch = Math.max(8, (amount / 10) | 0);
+              for (let i = 0; i < batch; i++)
+                confettiParticles.push(makeParticle());
+              if (!confettiRAF)
+                confettiRAF = requestAnimationFrame(stepConfetti);
+              setTimeout(spawn, 80);
+            }
+          };
+          spawn();
+          if (!confettiRAF) confettiRAF = requestAnimationFrame(stepConfetti);
+        }
+
+        /* ===== Init ===== */
+        (async () => {
+          await applyTheme(loadTheme()); // wichtig: async (Bing)
+          renderThemeListUI();
+          scheduleDailyBgRefresh();
+
+          renderRules();
+          initLayoutRadios();
+          if (!localStorage.getItem(LS_KEY_LAYOUT)) saveLayout("big-total");
+
+          tick();
+          setInterval(tick, 1000);
+        })();
+      })();
+    </script>
+  </body>
+</html>
