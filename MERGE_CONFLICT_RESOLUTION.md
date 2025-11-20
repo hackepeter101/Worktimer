@@ -95,12 +95,12 @@ After resolving conflicts, test that:
 
 1. **For PR #14:**
    - Application loads without console errors
-   - LocalStorage operations handle errors gracefully
+   - localStorage operations handle errors gracefully
    - Theme switching works correctly
    - No memory leaks in confetti animation
 
 2. **For PR #9:**
-   - Language switching works (German ⇔ English)
+   - Language switching works (German and English)
    - All UI text is properly translated
    - Existing rules work with both languages
    - Language preference persists across reloads
