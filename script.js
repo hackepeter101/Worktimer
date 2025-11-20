@@ -258,16 +258,7 @@
     return themeStore.themes.find((t) => t.key === key) || null;
   }
 
-  function getDayOfYear(d) {
-    const a = midnightOf(d),
-      b = new Date(d.getFullYear(), 0, 1);
-    return Math.floor((a - b) / 86400000) + 1;
-  }
-
-
-
-
-
+  // applyTheme
   // applyTheme
   async function applyTheme(key = loadTheme(), now = new Date()) {
     const theme = key ? getThemeByKey(key) : null;
