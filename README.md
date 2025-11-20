@@ -180,6 +180,12 @@ The theme system consists of three main files:
 - `themeEditor.js`: UI controller for the Theme Editor modal
 - `themes.json`: Built-in theme definitions
 
+### Local Pickr Installation
+
+The Theme Editor uses the [Pickr color picker library](https://github.com/Simonwep/pickr). By default, it's loaded from a CDN, but you can install it locally for offline use or to customize its appearance.
+
+For detailed instructions on local installation and theme customization, see [PICKR_LOCAL_SETUP.md](PICKR_LOCAL_SETUP.md).
+
 ## Browser Support
 
 The app works in all modern browsers that support:
