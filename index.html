@@ -123,6 +123,10 @@
           <select id="themeSelector" class="theme-selector" title="Select theme">
             <option value="">Loading...</option>
           </select>
+          <button class="setting-btn" id="themeEditorBtn" title="Open Theme Editor">
+            <svg aria-hidden="true" width="16" height="16"><use href="#icon-sliders"></use></svg>
+            <span>editor</span>
+          </button>
         </div>
       </div>
     </footer>
@@ -149,13 +153,102 @@
     <!-- Confetti Canvas -->
     <canvas id="confettiCanvas"></canvas>
 
-    <script src="src/themeManager.js"></script>
+    <!-- Theme Editor Modal -->
+    <div class="overlay" id="themeEditorOverlay" aria-hidden="true">
+      <section
+        class="panel theme-editor-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="themeEditorTitle"
+      >
+        <div class="panel-header">
+          <h3 id="themeEditorTitle">theme editor</h3>
+          <button class="close-btn" id="closeThemeEditor" aria-label="Close">×</button>
+        </div>
+
+        <div class="theme-editor-content">
+          <!-- Theme List -->
+          <div class="theme-list-section">
+            <h4>available themes</h4>
+            <div id="themeList" class="theme-list">
+              <!-- Themes will be rendered here -->
+            </div>
+          </div>
+
+          <!-- Theme Editor Form -->
+          <div class="theme-form-section">
+            <h4 id="themeFormTitle">create new theme</h4>
+            <form id="themeEditorForm" class="theme-form">
+              <div class="form-group">
+                <label for="themeName">Theme Name</label>
+                <input type="text" id="themeName" class="simple-input" placeholder="My Custom Theme" required>
+              </div>
+
+              <div class="form-group">
+                <label for="bgColor">Background Color</label>
+                <div class="color-input-group">
+                  <input type="color" id="bgColor" value="#323437">
+                  <input type="text" id="bgColorText" class="simple-input color-text" value="#323437">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="fgColor">Text Color</label>
+                <div class="color-input-group">
+                  <input type="color" id="fgColor" value="#d1d0c5">
+                  <input type="text" id="fgColorText" class="simple-input color-text" value="#d1d0c5">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="accentColor">Accent Color</label>
+                <div class="color-input-group">
+                  <input type="color" id="accentColor" value="#e2b714">
+                  <input type="text" id="accentColorText" class="simple-input color-text" value="#e2b714">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="accent2Color">Accent 2 Color</label>
+                <div class="color-input-group">
+                  <input type="color" id="accent2Color" value="#e2b714">
+                  <input type="text" id="accent2ColorText" class="simple-input color-text" value="#e2b714">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="mutedColor">Muted Color</label>
+                <div class="color-input-group">
+                  <input type="color" id="mutedColor" value="#646669">
+                  <input type="text" id="mutedColorText" class="simple-input color-text" value="#646669">
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="simple-btn" id="previewThemeBtn">Preview</button>
+                <button type="submit" class="simple-btn active" id="saveThemeBtn">Save Theme</button>
+                <button type="button" class="simple-btn" id="cancelThemeBtn">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="themes.js"></script>
+    <script src="themeEditor.js"></script>
     <script src="script.js"></script>
     <script>
-      // Initialize theme manager on page load
+      // Initialize theme system on page load
       document.addEventListener('DOMContentLoaded', async () => {
-        await window.themeManager.init();
-        window.themeManager.initThemeSelector('#themeSelector');
+        // Initialize the new theme system
+        await window.ThemeSystem.initThemeSystem();
+        
+        // Initialize theme selector UI
+        initThemeSelector();
+        
+        // Initialize theme editor
+        initThemeEditor();
       });
     </script>
   </body>
