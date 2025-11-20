@@ -64,7 +64,7 @@
               fill="currentColor"
             ></rect>
           </svg>
-          Einstellungen
+          <span data-i18n="settings">Einstellungen</span>
         </button>
       </div>
     </header>
@@ -111,7 +111,60 @@
         aria-modal="true"
         aria-labelledby="panelTitle"
       >
-        <h3 id="panelTitle">Einstellungen</h3>
+        <h3 id="panelTitle" data-i18n="settings">Einstellungen</h3>
+
+        <!-- Language Selector -->
+        <div class="card" id="languageCard">
+          <div class="card-head">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></path>
+                <path
+                  d="M2 12H22"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></path>
+                <path
+                  d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></path>
+              </svg>
+              <span data-i18n="language">Sprache</span>
+            </div>
+          </div>
+          <div class="segmented" role="tablist" aria-label="Language selection">
+            <input
+              type="radio"
+              id="lang-de"
+              name="language"
+              value="de"
+            />
+            <label for="lang-de">
+              <b>🇩🇪 Deutsch</b>
+            </label>
+
+            <input
+              type="radio"
+              id="lang-en"
+              name="language"
+              value="en"
+            />
+            <label for="lang-en">
+              <b>🇬🇧 English</b>
+            </label>
+          </div>
+        </div>
 
         <!-- Anzeige: Segmented Control -->
         <div class="card" id="layoutCard">
@@ -125,7 +178,7 @@
                   stroke-linecap="round"
                 ></path>
               </svg>
-              <span>Anzeige</span>
+              <span data-i18n="display">Anzeige</span>
             </div>
           </div>
           <div class="segmented" role="tablist" aria-label="Anzeigeumschaltung">
@@ -136,8 +189,8 @@
               value="big-total"
             />
             <label for="layout-total">
-              <b>Gesamt</b>
-              <small>Kleiner: Pause</small>
+              <b data-i18n="total">Gesamt</b>
+              <small data-i18n="smallerBreak">Kleiner: Pause</small>
             </label>
 
             <input
@@ -147,8 +200,8 @@
               value="big-break"
             />
             <label for="layout-break">
-              <b>bis Pause</b>
-              <small>Kleiner: Gesamt</small>
+              <b data-i18n="untilBreak">bis Pause</b>
+              <small data-i18n="smallerTotal">Kleiner: Gesamt</small>
             </label>
           </div>
         </div>
@@ -159,46 +212,48 @@
         </div>
 
         <div class="card">
-          <h3>Neues Theme hinzufügen / bearbeiten</h3>
+          <h3 data-i18n="addTheme">Neues Theme hinzufügen / bearbeiten</h3>
           <div class="theme-manager">
             <div class="field">
-              <label for="themeName">Theme-Name</label>
+              <label for="themeName" data-i18n="themeName">Theme-Name</label>
               <input
                 type="text"
                 id="themeName"
                 class="input"
+                data-i18n-placeholder="themeNamePlaceholder"
                 placeholder="Theme # wird automatisch gesetzt"
               />
             </div>
             <div class="field">
-              <label>Primärfarbe</label>
+              <label data-i18n="primaryColor">Primärfarbe</label>
               <input type="color" id="accentColor" value="#6ea8fe" />
             </div>
             <div class="field">
-              <label>Sekundärfarbe</label>
+              <label data-i18n="secondaryColor">Sekundärfarbe</label>
               <input type="color" id="accent2Color" value="#b17aff" />
             </div>
             <div class="field">
-              <label>Hintergrundfarbe</label>
+              <label data-i18n="backgroundColor">Hintergrundfarbe</label>
               <input type="color" id="bgColor" value="#0b0c0f" />
             </div>
             <div class="field">
-              <label for="bgImage">Bild-URL (optional)</label>
+              <label for="bgImage" data-i18n="imageUrl">Bild-URL (optional)</label>
               <input
                 type="text"
                 id="bgImage"
                 class="input"
+                data-i18n-placeholder="imageUrlPlaceholder"
                 placeholder="https://a.jpg, https://b.jpg, … (Komma-getrennt für Daily)"
               />
             </div>
 
             <!-- Bing Daily pro Theme -->
             <div class="field">
-              <label for="useBingDaily">Tägliches Bild von Bing</label>
+              <label for="useBingDaily" data-i18n="bingDaily">Tägliches Bild von Bing</label>
               <input type="checkbox" id="useBingDaily" />
             </div>
             <div class="field" id="bingOptions" style="display: none">
-              <label for="bingMarket">Bing-Markt</label>
+              <label for="bingMarket" data-i18n="bingMarket">Bing-Markt</label>
               <select id="bingMarket" class="input">
                 <option value="de-DE" selected>de-DE (Deutschland)</option>
                 <option value="en-US">en-US (USA)</option>
@@ -208,14 +263,14 @@
                 <option value="it-IT">it-IT (Italien)</option>
                 <option value="ja-JP">ja-JP (Japan)</option>
               </select>
-              <button class="btn" id="refreshBing">Bild aktualisieren</button>
+              <button class="btn" id="refreshBing" data-i18n="refreshImage">Bild aktualisieren</button>
             </div>
 
             <div class="actions">
-              <button id="addThemeBtn" class="btn primary">
+              <button id="addThemeBtn" class="btn primary" data-i18n="addThemeBtn">
                 Theme hinzufügen
               </button>
-              <button id="cancelEditBtn" class="btn" style="display: none">
+              <button id="cancelEditBtn" class="btn" style="display: none" data-i18n="cancel">
                 Abbrechen
               </button>
             </div>
@@ -234,7 +289,7 @@
                   stroke-linecap="round"
                 ></path>
               </svg>
-              <span>Regeln</span>
+              <span data-i18n="rules">Regeln</span>
             </div>
             <button class="btn" id="addRuleBtn2" title="Regel hinzufügen">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -245,7 +300,7 @@
                   stroke-linecap="round"
                 ></path>
               </svg>
-              Hinzufügen
+              <span data-i18n="add">Hinzufügen</span>
             </button>
           </div>
 
@@ -257,7 +312,7 @@
         </div>
 
         <div class="row">
-          <button class="btn primary" id="closePanel">Fertig</button>
+          <button class="btn primary" id="closePanel" data-i18n="done">Fertig</button>
         </div>
       </section>
     </div>

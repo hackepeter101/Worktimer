@@ -10,10 +10,183 @@
   const LS_KEY_LAYOUT = "workday.layout.v1"; // 'big-total' | 'big-break'
   const THEME_STORE_KEY = "workday.themeStore.v2";
   const LS_KEY_THEME = "workday.theme.v2";
+  const LS_KEY_LANG = "workday.language.v1";
+
+  /* ===== Translations ===== */
+  const translations = {
+    de: {
+      appTitle: "Workday Countdown",
+      settings: "Einstellungen",
+      display: "Anzeige",
+      total: "Gesamt",
+      smallerBreak: "Kleiner: Pause",
+      untilBreak: "bis Pause",
+      smallerTotal: "Kleiner: Gesamt",
+      addTheme: "Neues Theme hinzufügen / bearbeiten",
+      themeName: "Theme-Name",
+      themeNamePlaceholder: "Theme # wird automatisch gesetzt",
+      primaryColor: "Primärfarbe",
+      secondaryColor: "Sekundärfarbe",
+      backgroundColor: "Hintergrundfarbe",
+      imageUrl: "Bild-URL (optional)",
+      imageUrlPlaceholder: "https://a.jpg, https://b.jpg, … (Komma-getrennt für Daily)",
+      bingDaily: "Tägliches Bild von Bing",
+      bingMarket: "Bing-Markt",
+      refreshImage: "Bild aktualisieren",
+      addThemeBtn: "Theme hinzufügen",
+      saveThemeBtn: "Theme speichern",
+      cancel: "Abbrechen",
+      rules: "Regeln",
+      add: "Hinzufügen",
+      delete: "Löschen",
+      name: "Name",
+      namePlaceholder: "z. B. Büro",
+      weekdays: "Wochentage",
+      monFri: "Mo–Fr",
+      satSun: "Sa–So",
+      all: "Alle",
+      none: "Keine",
+      start: "Start",
+      end: "Ende",
+      breaks: "Pausen",
+      from: "Von",
+      to: "Bis",
+      removeBreak: "Pause entfernen",
+      addBreak: "Pause hinzufügen",
+      done: "Fertig",
+      newRule: "Neue Regel",
+      standard: "Standard",
+      totalUntilEnd: "Gesamt bis Ende",
+      untilBreakLabel: "Bis Pause",
+      untilEndOfWork: "Bis Feierabend",
+      breakEnd: "Pause-Ende",
+      work: "Arbeit",
+      noActiveRule: "Keine aktive/kommende Regel",
+      now: "Jetzt",
+      language: "Sprache",
+      sunday: "So",
+      monday: "Mo",
+      tuesday: "Di",
+      wednesday: "Mi",
+      thursday: "Do",
+      friday: "Fr",
+      saturday: "Sa",
+    },
+    en: {
+      appTitle: "Workday Countdown",
+      settings: "Settings",
+      display: "Display",
+      total: "Total",
+      smallerBreak: "Smaller: Break",
+      untilBreak: "until Break",
+      smallerTotal: "Smaller: Total",
+      addTheme: "Add / edit theme",
+      themeName: "Theme Name",
+      themeNamePlaceholder: "Theme # will be set automatically",
+      primaryColor: "Primary Color",
+      secondaryColor: "Secondary Color",
+      backgroundColor: "Background Color",
+      imageUrl: "Image URL (optional)",
+      imageUrlPlaceholder: "https://a.jpg, https://b.jpg, … (comma-separated for daily rotation)",
+      bingDaily: "Daily image from Bing",
+      bingMarket: "Bing Market",
+      refreshImage: "Refresh image",
+      addThemeBtn: "Add theme",
+      saveThemeBtn: "Save theme",
+      cancel: "Cancel",
+      rules: "Rules",
+      add: "Add",
+      delete: "Delete",
+      name: "Name",
+      namePlaceholder: "e.g. Office",
+      weekdays: "Weekdays",
+      monFri: "Mon–Fri",
+      satSun: "Sat–Sun",
+      all: "All",
+      none: "None",
+      start: "Start",
+      end: "End",
+      breaks: "Breaks",
+      from: "From",
+      to: "To",
+      removeBreak: "Remove break",
+      addBreak: "Add break",
+      done: "Done",
+      newRule: "New Rule",
+      standard: "Standard",
+      totalUntilEnd: "Total until end",
+      untilBreakLabel: "Until break",
+      untilEndOfWork: "Until end of work",
+      breakEnd: "Break end",
+      work: "Work",
+      noActiveRule: "No active/upcoming rule",
+      now: "Now",
+      language: "Language",
+      sunday: "Sun",
+      monday: "Mon",
+      tuesday: "Tue",
+      wednesday: "Wed",
+      thursday: "Thu",
+      friday: "Fri",
+      saturday: "Sat",
+    },
+  };
+
+  const loadLanguage = () => localStorage.getItem(LS_KEY_LANG) || "de";
+  const saveLanguage = (lang) => {
+    localStorage.setItem(LS_KEY_LANG, lang);
+    document.documentElement.lang = lang;
+  };
+  let currentLang = loadLanguage();
+  const t = (key) => translations[currentLang]?.[key] || translations.de[key] || key;
 
   /* ===== Days ===== */
-  const dayAbbr = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
-  const weekdayOrder = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+  const getDayAbbr = () => [
+    t("sunday"),
+    t("monday"),
+    t("tuesday"),
+    t("wednesday"),
+    t("thursday"),
+    t("friday"),
+    t("saturday"),
+  ];
+  const getWeekdayOrder = () => [
+    t("monday"),
+    t("tuesday"),
+    t("wednesday"),
+    t("thursday"),
+    t("friday"),
+    t("saturday"),
+    t("sunday"),
+  ];
+  let dayAbbr = getDayAbbr();
+  let weekdayOrder = getWeekdayOrder();
+
+  // Day name mapping for backward compatibility
+  const dayMapping = {
+    // German to index
+    So: 0,
+    Mo: 1,
+    Di: 2,
+    Mi: 3,
+    Do: 4,
+    Fr: 5,
+    Sa: 6,
+    // English to index
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+
+  // Normalize day names to current language
+  const normalizeDayName = (day) => {
+    const idx = dayMapping[day];
+    return idx !== undefined ? dayAbbr[idx] : day;
+  };
 
   /* ===== Helpers ===== */
   const pad = (n) => String(n).padStart(2, "0");
@@ -467,12 +640,12 @@
     const isBing = t.source === "bing";
     if (useBingEl) useBingEl.checked = isBing;
     if (optBox) optBox.style.display = isBing ? "" : "none";
-    if (marketSel && t.bingMarket) marketSel.value = t.bingMarket;
+    if (marketSel && th.bingMarket) marketSel.value = th.bingMarket;
 
     const addBtn = $("#addThemeBtn");
     const cancel = $("#cancelEditBtn");
     if (addBtn) {
-      addBtn.textContent = "Theme speichern";
+      addBtn.textContent = t("saveThemeBtn");
       addBtn.dataset.mode = "edit";
     }
     if (cancel) cancel.style.display = "";
@@ -482,7 +655,7 @@
     const addBtn = $("#addThemeBtn");
     const cancel = $("#cancelEditBtn");
     if (addBtn) {
-      addBtn.textContent = "Theme hinzufügen";
+      addBtn.textContent = t("addThemeBtn");
       addBtn.dataset.mode = "";
     }
     if (cancel) cancel.style.display = "none";
@@ -490,12 +663,12 @@
   }
 
   function updateTheme(key, input) {
-    const t = getThemeByKey(key);
-    if (!t) return;
+    const th = getThemeByKey(key);
+    if (!th) return;
 
-    t.name = input.name || t.name;
-    t.palette = t.palette || {};
-    if (input.bg) t.palette.bg = input.bg;
+    th.name = input.name || th.name;
+    th.palette = th.palette || {};
+    if (input.bg) th.palette.bg = input.bg;
     if (input.accent) t.palette.accent = input.accent;
     if (input.accent2) t.palette["accent-2"] = input.accent2;
 
@@ -675,7 +848,7 @@
       .map((s) => s.trim())
       .filter(Boolean);
   const daysSetFromRule = (rule) =>
-    new Set(normalizeDaysString(rule.days));
+    new Set(normalizeDaysString(rule.days).map(normalizeDayName));
   const daysStringFromSet = (set) =>
     weekdayOrder.filter((d) => set.has(d)).join(",");
 
@@ -754,21 +927,23 @@
     return `
         <div class="break-row" data-id="${escapeAttr(id)}">
           <div class="col-5">
-            <label>Von
+            <label>${t("from")}
               <input class="inp-break-start input" type="time" value="${escapeAttr(
                 s
               )}" />
             </label>
           </div>
           <div class="col-5">
-            <label>Bis
+            <label>${t("to")}
               <input class="inp-break-end input" type="time" value="${escapeAttr(
                 e
               )}" />
             </label>
           </div>
           <div class="col-2" style="display:flex;gap:8px;justify-content:flex-end;">
-            <button type="button" class="btn icon del-break" title="Entfernen" aria-label="Pause entfernen">
+            <button type="button" class="btn icon del-break" title="${t(
+              "removeBreak"
+            )}" aria-label="${t("removeBreak")}">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
                 <path d="M4 7h16M9 7V5h6v2m-9 0 1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"
                       stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -796,13 +971,32 @@
         )
         .join("");
 
+      // Build shortcuts with current day abbreviations
+      const monFriDays = [
+        t("monday"),
+        t("tuesday"),
+        t("wednesday"),
+        t("thursday"),
+        t("friday"),
+      ].join(",");
+      const satSunDays = [t("saturday"), t("sunday")].join(",");
+      const allDays = weekdayOrder.join(",");
+
       const daysHTML = `
           <div class="days-wrap">
             <div class="days-shortcuts">
-              <button type="button" class="shortcut" data-days="Mo,Di,Mi,Do,Fr">Mo–Fr</button>
-              <button type="button" class="shortcut" data-days="Sa,So">Sa–So</button>
-              <button type="button" class="shortcut" data-days="Mo,Di,Mi,Do,Fr,Sa,So">Alle</button>
-              <button type="button" class="shortcut" data-days="">Keine</button>
+              <button type="button" class="shortcut" data-days="${monFriDays}">${t(
+        "monFri"
+      )}</button>
+              <button type="button" class="shortcut" data-days="${satSunDays}">${t(
+        "satSun"
+      )}</button>
+              <button type="button" class="shortcut" data-days="${allDays}">${t(
+        "all"
+      )}</button>
+              <button type="button" class="shortcut" data-days="">${t(
+        "none"
+      )}</button>
             </div>
             <div class="days-grid">${dayChips}</div>
           </div>
@@ -819,42 +1013,44 @@
                 <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
               <span class="title">${escapeHtml(
-                rule.name || "Ohne Titel"
+                rule.name || t("newRule")
               )}</span>
             </div>
-            <button class="btn danger btn-delete" title="Regel löschen" type="button">
+            <button class="btn danger btn-delete" title="${t(
+              "delete"
+            )}" type="button">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
                 <path d="M4 7h16M9 7V5h6v2m-9 0 1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"
                       stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              Löschen
+              ${t("delete")}
             </button>
           </div>
 
           <div class="card-grid">
             <div class="col-4">
-              <label>Name
+              <label>${t("name")}
                 <input class="inp-name input" type="text" value="${escapeAttr(
                   rule.name
-                )}" placeholder="z. B. Büro" />
+                )}" placeholder="${t("namePlaceholder")}" />
               </label>
             </div>
 
             <div class="col-8">
-              <label>Wochentage
+              <label>${t("weekdays")}
                 ${daysHTML}
               </label>
             </div>
 
             <div class="col-2">
-              <label>Start
+              <label>${t("start")}
                 <input class="inp-start input" type="time" value="${escapeAttr(
                   rule.start
                 )}" />
               </label>
             </div>
             <div class="col-2">
-              <label>Ende
+              <label>${t("end")}
                 <input class="inp-end input" type="time" value="${escapeAttr(
                   rule.end
                 )}" />
@@ -862,7 +1058,7 @@
             </div>
 
             <div class="col-12">
-              <label>Pausen
+              <label>${t("breaks")}
                 <div class="breaks">
                   ${breaksRows}
                   <div>
@@ -870,7 +1066,7 @@
                       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
                         <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                       </svg>
-                      Pause hinzufügen
+                      ${t("addBreak")}
                     </button>
                   </div>
                 </div>
@@ -977,8 +1173,14 @@
   function addRule() {
     const newRule = {
       id: crypto.randomUUID(),
-      name: "Neue Regel",
-      days: "Mo,Di,Mi,Do,Fr",
+      name: t("newRule"),
+      days: [
+        t("monday"),
+        t("tuesday"),
+        t("wednesday"),
+        t("thursday"),
+        t("friday"),
+      ].join(","),
       start: "09:00",
       end: "17:00",
       breaks: [],
@@ -1011,7 +1213,8 @@
     (str || "")
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .map(normalizeDayName);
 
   function findActiveOrNext(now = new Date()) {
     const today = midnightOf(now);
@@ -1116,12 +1319,12 @@
   function nextPauseTarget(state, now) {
     const segs = state.segments || [];
     if (state.mode === "break") {
-      return { target: state.end, label: "Pause-Ende" };
+      return { target: state.end, label: t("breakEnd") };
     }
     const ref = state.type === "upcoming" ? state.start : now;
     const nb = segs.find((s) => s.type === "break" && s.start > ref);
-    if (nb) return { target: nb.start, label: "Pause" };
-    return { target: state.windowEnd, label: "Feierabend" };
+    if (nb) return { target: nb.start, label: t("untilBreakLabel") };
+    return { target: state.windowEnd, label: t("untilEndOfWork") };
   }
 
   const stateMem = { lastType: "none", lastRuleId: null, lastMode: null };
@@ -1151,15 +1354,15 @@
     if (st.type === "during" || st.type === "upcoming") {
       // totals
       const totalRemain = st.windowEnd - now;
-      const totalLabel = `Gesamt bis Ende: ${toHM(st.windowEnd)} (${
-        st.rule.name || "Arbeit"
+      const totalLabel = `${t("totalUntilEnd")}: ${toHM(st.windowEnd)} (${
+        st.rule.name || t("work")
       })`;
 
       // part (pause/feierabend)
       const np = nextPauseTarget(st, now);
       const partRemain = np.target - now;
-      const partLabel = `Bis ${np.label}: ${toHM(np.target)} (${
-        st.rule.name || "Arbeit"
+      const partLabel = `${np.label}: ${toHM(np.target)} (${
+        st.rule.name || t("work")
       })`;
 
       if (layout === "big-total") {
@@ -1193,7 +1396,7 @@
       progressBar?.classList.toggle("is-break", st.mode === "break");
     } else {
       if (countdownBig) countdownBig.textContent = "–:–";
-      if (labelBig) labelBig.textContent = "Keine aktive/kommende Regel";
+      if (labelBig) labelBig.textContent = t("noActiveRule");
       if (countdownSmall) countdownSmall.textContent = "–:–";
       if (labelSmall) labelSmall.textContent = "—";
       if (progressBar) progressBar.style.width = "0%";
@@ -1205,7 +1408,7 @@
     }
 
     const pn = $("#progressNow");
-    if (pn) pn.textContent = "Jetzt";
+    if (pn) pn.textContent = t("now");
   }
 
   /* ===== Layout Radios ===== */
@@ -1313,14 +1516,71 @@
     if (!confettiRAF) confettiRAF = requestAnimationFrame(stepConfetti);
   }
 
+  /* ===== Language Switching ===== */
+  function updateUIText() {
+    // Update all elements with data-i18n attribute
+    $$("[data-i18n]").forEach((el) => {
+      const key = el.getAttribute("data-i18n");
+      el.textContent = t(key);
+    });
+
+    // Update placeholders
+    $$("[data-i18n-placeholder]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-placeholder");
+      el.placeholder = t(key);
+    });
+
+    // Update document title and lang attribute
+    document.title = t("appTitle");
+    document.documentElement.lang = currentLang;
+
+    // Update button titles
+    const settingsBtn = $("#openSettingsBtn");
+    if (settingsBtn) settingsBtn.title = t("settings");
+
+    // Re-render rules to update day labels
+    dayAbbr = getDayAbbr();
+    weekdayOrder = getWeekdayOrder();
+    renderRules();
+
+    // Update "now" label in progress
+    const pn = $("#progressNow");
+    if (pn) pn.textContent = t("now");
+  }
+
+  function initLanguageSelector() {
+    const current = loadLanguage();
+    currentLang = current;
+    const radio = document.querySelector(
+      `input[name="language"][value="${current}"]`
+    );
+    if (radio) radio.checked = true;
+
+    $$('input[name="language"]').forEach((el) => {
+      el.addEventListener("change", (e) => {
+        currentLang = e.target.value;
+        saveLanguage(currentLang);
+        updateUIText();
+        tick(); // refresh labels immediately
+      });
+    });
+  }
+
   /* ===== Init ===== */
   (async () => {
+    // Initialize language first
+    currentLang = loadLanguage();
+    document.documentElement.lang = currentLang;
+    
     await applyTheme(loadTheme()); // wichtig: async (Bing)
     renderThemeListUI();
     scheduleDailyBgRefresh();
 
     renderRules();
     initLayoutRadios();
+    initLanguageSelector();
+    updateUIText(); // Apply translations
+    
     if (!localStorage.getItem(LS_KEY_LAYOUT)) saveLayout("big-total");
 
     tick();
