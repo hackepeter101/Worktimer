@@ -1,6 +1,26 @@
 {
   "themes": [
     {
+      "id": "monkeytype",
+      "name": "Monkeytype",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#323437",
+        "--fg": "#d1d0c5",
+        "--text": "#d1d0c5",
+        "--muted": "#646669",
+        "--card": "#2c2e31",
+        "--accent": "#e2b714",
+        "--accent-2": "#e2b714",
+        "--danger": "#ca4754",
+        "--color-bg": "#323437",
+        "--color-text": "#d1d0c5",
+        "--color-muted": "#646669",
+        "--color-surface": "#2c2e31",
+        "--color-accent": "#e2b714"
+      }
+    },
+    {
       "id": "light",
       "name": "Light",
       "builtIn": true,
@@ -38,6 +58,206 @@
         "--color-muted": "#94a3b8",
         "--color-surface": "#1e293b",
         "--color-accent": "#3b82f6"
+      }
+    },
+    {
+      "id": "nord",
+      "name": "Nord",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#2e3440",
+        "--fg": "#eceff4",
+        "--text": "#eceff4",
+        "--muted": "#81a1c1",
+        "--card": "#3b4252",
+        "--accent": "#88c0d0",
+        "--accent-2": "#81a1c1",
+        "--danger": "#bf616a",
+        "--color-bg": "#2e3440",
+        "--color-text": "#eceff4",
+        "--color-muted": "#81a1c1",
+        "--color-surface": "#3b4252",
+        "--color-accent": "#88c0d0"
+      }
+    },
+    {
+      "id": "dracula",
+      "name": "Dracula",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#282a36",
+        "--fg": "#f8f8f2",
+        "--text": "#f8f8f2",
+        "--muted": "#6272a4",
+        "--card": "#44475a",
+        "--accent": "#bd93f9",
+        "--accent-2": "#ff79c6",
+        "--danger": "#ff5555",
+        "--color-bg": "#282a36",
+        "--color-text": "#f8f8f2",
+        "--color-muted": "#6272a4",
+        "--color-surface": "#44475a",
+        "--color-accent": "#bd93f9"
+      }
+    },
+    {
+      "id": "gruvbox-dark",
+      "name": "Gruvbox Dark",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#282828",
+        "--fg": "#ebdbb2",
+        "--text": "#ebdbb2",
+        "--muted": "#928374",
+        "--card": "#3c3836",
+        "--accent": "#fe8019",
+        "--accent-2": "#fabd2f",
+        "--danger": "#fb4934",
+        "--color-bg": "#282828",
+        "--color-text": "#ebdbb2",
+        "--color-muted": "#928374",
+        "--color-surface": "#3c3836",
+        "--color-accent": "#fe8019"
+      }
+    },
+    {
+      "id": "gruvbox-light",
+      "name": "Gruvbox Light",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#fbf1c7",
+        "--fg": "#3c3836",
+        "--text": "#3c3836",
+        "--muted": "#7c6f64",
+        "--card": "#ebdbb2",
+        "--accent": "#d65d0e",
+        "--accent-2": "#b57614",
+        "--danger": "#cc241d",
+        "--color-bg": "#fbf1c7",
+        "--color-text": "#3c3836",
+        "--color-muted": "#7c6f64",
+        "--color-surface": "#ebdbb2",
+        "--color-accent": "#d65d0e"
+      }
+    },
+    {
+      "id": "solarized-dark",
+      "name": "Solarized Dark",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#002b36",
+        "--fg": "#839496",
+        "--text": "#839496",
+        "--muted": "#586e75",
+        "--card": "#073642",
+        "--accent": "#268bd2",
+        "--accent-2": "#2aa198",
+        "--danger": "#dc322f",
+        "--color-bg": "#002b36",
+        "--color-text": "#839496",
+        "--color-muted": "#586e75",
+        "--color-surface": "#073642",
+        "--color-accent": "#268bd2"
+      }
+    },
+    {
+      "id": "solarized-light",
+      "name": "Solarized Light",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#fdf6e3",
+        "--fg": "#657b83",
+        "--text": "#657b83",
+        "--muted": "#93a1a1",
+        "--card": "#eee8d5",
+        "--accent": "#268bd2",
+        "--accent-2": "#2aa198",
+        "--danger": "#dc322f",
+        "--color-bg": "#fdf6e3",
+        "--color-text": "#657b83",
+        "--color-muted": "#93a1a1",
+        "--color-surface": "#eee8d5",
+        "--color-accent": "#268bd2"
+      }
+    },
+    {
+      "id": "monokai",
+      "name": "Monokai",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#272822",
+        "--fg": "#f8f8f2",
+        "--text": "#f8f8f2",
+        "--muted": "#75715e",
+        "--card": "#3e3d32",
+        "--accent": "#66d9ef",
+        "--accent-2": "#a6e22e",
+        "--danger": "#f92672",
+        "--color-bg": "#272822",
+        "--color-text": "#f8f8f2",
+        "--color-muted": "#75715e",
+        "--color-surface": "#3e3d32",
+        "--color-accent": "#66d9ef"
+      }
+    },
+    {
+      "id": "tokyo-night",
+      "name": "Tokyo Night",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#1a1b26",
+        "--fg": "#c0caf5",
+        "--text": "#c0caf5",
+        "--muted": "#565f89",
+        "--card": "#24283b",
+        "--accent": "#7aa2f7",
+        "--accent-2": "#bb9af7",
+        "--danger": "#f7768e",
+        "--color-bg": "#1a1b26",
+        "--color-text": "#c0caf5",
+        "--color-muted": "#565f89",
+        "--color-surface": "#24283b",
+        "--color-accent": "#7aa2f7"
+      }
+    },
+    {
+      "id": "catppuccin-mocha",
+      "name": "Catppuccin Mocha",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#1e1e2e",
+        "--fg": "#cdd6f4",
+        "--text": "#cdd6f4",
+        "--muted": "#6c7086",
+        "--card": "#313244",
+        "--accent": "#89b4fa",
+        "--accent-2": "#f5c2e7",
+        "--danger": "#f38ba8",
+        "--color-bg": "#1e1e2e",
+        "--color-text": "#cdd6f4",
+        "--color-muted": "#6c7086",
+        "--color-surface": "#313244",
+        "--color-accent": "#89b4fa"
+      }
+    },
+    {
+      "id": "rose-pine",
+      "name": "Rosé Pine",
+      "builtIn": true,
+      "variables": {
+        "--bg": "#191724",
+        "--fg": "#e0def4",
+        "--text": "#e0def4",
+        "--muted": "#6e6a86",
+        "--card": "#1f1d2e",
+        "--accent": "#c4a7e7",
+        "--accent-2": "#ebbcba",
+        "--danger": "#eb6f92",
+        "--color-bg": "#191724",
+        "--color-text": "#e0def4",
+        "--color-muted": "#6e6a86",
+        "--color-surface": "#1f1d2e",
+        "--color-accent": "#c4a7e7"
       }
     },
     {
