@@ -1,23 +1,23 @@
 {
   "themes": [
     {
-      "id": "monkeytype",
-      "name": "Monkeytype",
+      "id": "dark",
+      "name": "Dark",
       "builtIn": true,
       "variables": {
-        "--bg": "#323437",
-        "--fg": "#d1d0c5",
-        "--text": "#d1d0c5",
-        "--muted": "#646669",
-        "--card": "#2c2e31",
-        "--accent": "#e2b714",
-        "--accent-2": "#e2b714",
-        "--danger": "#ca4754",
-        "--color-bg": "#323437",
-        "--color-text": "#d1d0c5",
-        "--color-muted": "#646669",
-        "--color-surface": "#2c2e31",
-        "--color-accent": "#e2b714"
+        "--bg": "#0f172a",
+        "--fg": "#e2e8f0",
+        "--text": "#e2e8f0",
+        "--muted": "#94a3b8",
+        "--card": "#1e293b",
+        "--accent": "#3b82f6",
+        "--accent-2": "#2563eb",
+        "--danger": "#ef4444",
+        "--color-bg": "#0f172a",
+        "--color-text": "#e2e8f0",
+        "--color-muted": "#94a3b8",
+        "--color-surface": "#1e293b",
+        "--color-accent": "#3b82f6"
       }
     },
     {
@@ -39,25 +39,24 @@
         "--color-surface": "#f5f5f5",
         "--color-accent": "#2563eb"
       }
-    },
-    {
-      "id": "dark",
-      "name": "Dark",
+    },    {
+      "id": "monkeytype",
+      "name": "Monkeytype",
       "builtIn": true,
       "variables": {
-        "--bg": "#0f172a",
-        "--fg": "#e2e8f0",
-        "--text": "#e2e8f0",
-        "--muted": "#94a3b8",
-        "--card": "#1e293b",
-        "--accent": "#3b82f6",
-        "--accent-2": "#2563eb",
-        "--danger": "#ef4444",
-        "--color-bg": "#0f172a",
-        "--color-text": "#e2e8f0",
-        "--color-muted": "#94a3b8",
-        "--color-surface": "#1e293b",
-        "--color-accent": "#3b82f6"
+        "--bg": "#323437",
+        "--fg": "#d1d0c5",
+        "--text": "#d1d0c5",
+        "--muted": "#646669",
+        "--card": "#2c2e31",
+        "--accent": "#e2b714",
+        "--accent-2": "#e2b714",
+        "--danger": "#ca4754",
+        "--color-bg": "#323437",
+        "--color-text": "#d1d0c5",
+        "--color-muted": "#646669",
+        "--color-surface": "#2c2e31",
+        "--color-accent": "#e2b714"
       }
     },
     {
