@@ -209,15 +209,19 @@
   transform: scale(1.05) !important;
 }
 
-/* Add subtle highlight to currently selected swatch */
+/* Add subtle highlight to currently selected swatch - Note: This selector is based on */
+/* Pickr's aria-label pattern. If Pickr updates its aria-label format, this may need adjustment */
 .pcr-app .pcr-swatches > button[aria-label*="current"] {
   border-color: var(--accent, #e2b714) !important;
   box-shadow: 0 0 0 3px rgba(226, 183, 20, 0.3), 0 2px 4px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* ===== Type/Format Selector ===== */
+/* Hide the type/format selector (HEX/RGBA/HSLA/etc.) for a cleaner, simpler UI */
+/* Users can still input any valid color format in the text field, and Pickr will parse it */
+/* The color is always saved in HEX format which is the most common and compatible format */
 .pcr-app .pcr-interaction .pcr-type {
-  display: none !important; /* Hide type selector for cleaner UI */
+  display: none !important;
 }
 
 /* ===== Responsive Adjustments ===== */
