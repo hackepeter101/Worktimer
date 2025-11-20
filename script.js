@@ -67,15 +67,15 @@
     themeStore.themes = [
       {
         key: "default",
-        name: "Theme #1",
+        name: "monkeytype",
         palette: {
-          bg: "#0b0c0f",
-          fg: "#e9eef4",
-          muted: "#a7b0bf",
-          card: "#14161b",
-          accent: "#6ea8fe",
-          "accent-2": "#b17aff",
-          danger: "#ff6b6b",
+          bg: "#323437",
+          fg: "#d1d0c5",
+          muted: "#646669",
+          card: "#2c2e31",
+          accent: "#e2b714",
+          "accent-2": "#e2b714",
+          danger: "#ca4754",
         },
         bgDaily: false,
       },
@@ -426,16 +426,16 @@
     
     if (isLightBackground) {
       // Dark text on light background
-      root.style.setProperty("--fg", "#0b0c0f");
-      root.style.setProperty("--muted", "#4a5568");
+      root.style.setProperty("--fg", "#323437");
+      root.style.setProperty("--muted", "#646669");
       root.style.setProperty("--card", "rgba(255, 255, 255, 0.85)");
-      document.body.style.color = "#0b0c0f";
+      document.body.style.color = "#323437";
     } else {
       // Light text on dark background
-      root.style.setProperty("--fg", "#e9eef4");
-      root.style.setProperty("--muted", "#a7b0bf");
-      root.style.setProperty("--card", "#14161b");
-      document.body.style.color = "#e9eef4";
+      root.style.setProperty("--fg", "#d1d0c5");
+      root.style.setProperty("--muted", "#646669");
+      root.style.setProperty("--card", "#2c2e31");
+      document.body.style.color = "#d1d0c5";
     }
   }
 
@@ -640,13 +640,13 @@
       key,
       name: input.name || nextThemeName(),
       palette: {
-        bg: input.bg ?? "#0b0c0f",
-        fg: input.fg ?? "#e9eef4",
-        muted: input.muted ?? "#a7b0bf",
-        card: input.card ?? "#14161b",
-        accent: input.accent ?? "#6ea8fe",
-        "accent-2": input.accent2 ?? "#b17aff",
-        danger: input.danger ?? "#ff6b6b",
+        bg: input.bg ?? "#323437",
+        fg: input.fg ?? "#d1d0c5",
+        muted: input.muted ?? "#646669",
+        card: input.card ?? "#2c2e31",
+        accent: input.accent ?? "#e2b714",
+        "accent-2": input.accent2 ?? "#e2b714",
+        danger: input.danger ?? "#ca4754",
       },
       source: input.source || null, // 'bing' | null
       bingMarket: input.bingMarket || null,
