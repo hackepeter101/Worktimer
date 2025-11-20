@@ -556,7 +556,7 @@
         t.source === "bing" ? "bing" : t.bgDaily ? "daily" : "static";
 
       chip.innerHTML = `
-          <span class="theme-chip swatch" style="background: linear-gradient(90deg, ${c1}, ${c2});"></span>
+          <span class="swatch" style="background: linear-gradient(90deg, ${c1}, ${c2});"></span>
           <span>${escapeHtml(t.name)}</span>
           <span style="margin-left:8px;opacity:.65;">(${srcLabel})</span>
           <button type="button" class="edit-theme" title="Theme bearbeiten" style="margin-left:10px;background:transparent;border:0;color:inherit;opacity:.9;">✎</button>
