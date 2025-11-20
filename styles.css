@@ -45,6 +45,7 @@ body {
   transition: background 0.4s ease, color 0.4s ease;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 header,
@@ -90,8 +91,11 @@ footer .actions {
   align-items: center;
   text-align: center;
   gap: 12px;
-  max-width: 92vw;
+  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
 
 /* Dual countdowns */
@@ -103,9 +107,12 @@ footer .actions {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
   font-kerning: none;
-  font-size: clamp(48px, calc(18vw + 8vh), 240px);
+  font-size: clamp(48px, 15vw, 240px);
   text-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   user-select: none;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: keep-all;
 }
 .countdown-small {
   font-family: var(--count-font);
@@ -128,7 +135,7 @@ footer .actions {
 
 /* Progress */
 .progress-wrap {
-  width: min(900px, 92vw);
+  width: min(900px, calc(100vw - 32px));
   margin: 8px auto 0;
 }
 .progress {
@@ -625,4 +632,70 @@ button,
   height: 100vh;
   pointer-events: none;
   z-index: 100;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  .countdown-big {
+    font-size: clamp(40px, 13vw, 120px);
+    padding: 0 4px;
+  }
+  
+  .countdown-small {
+    font-size: clamp(16px, 3vw, 32px);
+  }
+  
+  .subtitle {
+    font-size: clamp(12px, 2.5vw, 16px);
+  }
+  
+  .brand span {
+    font-size: 14px;
+  }
+  
+  .brand svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .btn {
+    padding: 10px 14px;
+    font-size: 14px;
+    min-height: 40px;
+  }
+  
+  .btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  header,
+  footer {
+    padding: 12px 16px;
+  }
+  
+  .progress-meta {
+    font-size: 11px;
+    gap: 4px;
+  }
+  
+  .center {
+    padding: clamp(4px, 1vw, 16px);
+  }
+}
+
+/* Very small mobile devices */
+@media (max-width: 375px) {
+  .countdown-big {
+    font-size: clamp(36px, 12vw, 100px);
+  }
+  
+  .progress-wrap {
+    width: calc(100vw - 24px);
+  }
+  
+  .stack {
+    padding: 0 4px;
+    gap: 8px;
+  }
 }
