@@ -117,6 +117,13 @@
           <svg aria-hidden="true" width="16" height="16"><use href="#icon-calendar"></use></svg>
           <span>rules</span>
         </button>
+        <!-- Theme Selector -->
+        <div class="theme-selector-wrapper">
+          <label for="themeSelector" class="theme-selector-label">Theme:</label>
+          <select id="themeSelector" class="theme-selector" title="Select theme">
+            <option value="">Loading...</option>
+          </select>
+        </div>
       </div>
     </footer>
 
@@ -142,6 +149,14 @@
     <!-- Confetti Canvas -->
     <canvas id="confettiCanvas"></canvas>
 
+    <script src="src/themeManager.js"></script>
     <script src="script.js"></script>
+    <script>
+      // Initialize theme manager on page load
+      document.addEventListener('DOMContentLoaded', async () => {
+        await window.themeManager.init();
+        window.themeManager.initThemeSelector('#themeSelector');
+      });
+    </script>
   </body>
 </html>
