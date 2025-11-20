@@ -113,13 +113,72 @@
     (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
     // Einfacher CORS-Proxy mit plain body
     (u) => `https://cors.isomorphic-git.org/${u}`,
+    // Alternative Proxy
+    (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
   ];
 
-  // Kleines Timeout-Helper, damit wir schnell weiterprobieren
+  // Cache für Bing-Bilder (key: market+date, value: {url, timestamp})
+  const BING_CACHE_KEY = "workday.bingImageCache";
+  const BING_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 Stunden
+
+  function getCachedBingImage(market, date = new Date()) {
+    try {
+      const cache = JSON.parse(localStorage.getItem(BING_CACHE_KEY) || "{}");
+      const dateKey = midnightOf(date).getTime();
+      const key = `${market}_${dateKey}`;
+      const entry = cache[key];
+      
+      if (entry && entry.url && entry.timestamp) {
+        const age = Date.now() - entry.timestamp;
+        if (age < BING_CACHE_DURATION) {
+          console.log("[BING] Using cached image", entry.url);
+          return entry.url;
+        }
+      }
+    } catch (e) {
+      console.warn("[BING] Cache read error:", e);
+    }
+    return null;
+  }
+
+  function setCachedBingImage(market, url, date = new Date()) {
+    try {
+      const cache = JSON.parse(localStorage.getItem(BING_CACHE_KEY) || "{}");
+      const dateKey = midnightOf(date).getTime();
+      const key = `${market}_${dateKey}`;
+      
+      cache[key] = {
+        url,
+        timestamp: Date.now()
+      };
+      
+      // Cleanup old entries (älter als 7 Tage)
+      const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      Object.keys(cache).forEach(k => {
+        if (cache[k].timestamp < cutoff) {
+          delete cache[k];
+        }
+      });
+      
+      localStorage.setItem(BING_CACHE_KEY, JSON.stringify(cache));
+      console.log("[BING] Cached image for", key);
+    } catch (e) {
+      console.warn("[BING] Cache write error:", e);
+    }
+  }
+
+  // Timeout-Helper mit AbortController für bessere Cleanup
   function fetchWithTimeout(url, opts = {}, ms = 6000) {
     return new Promise((resolve, reject) => {
-      const t = setTimeout(() => reject(new Error("timeout")), ms);
-      fetch(url, opts).then(
+      const controller = new AbortController();
+      const signal = controller.signal;
+      
+      const t = setTimeout(() => {
+        controller.abort();
+        reject(new Error("timeout"));
+      }, ms);
+      
+      fetch(url, { ...opts, signal }).then(
         (r) => {
           clearTimeout(t);
           resolve(r);
@@ -133,48 +192,138 @@
   }
 
   /**
+   * Retry-Helper mit exponentialem Backoff
+   */
+  async function retryWithBackoff(fn, retries = 2, initialDelay = 500) {
+    for (let i = 0; i <= retries; i++) {
+      try {
+        return await fn();
+      } catch (e) {
+        if (i === retries) throw e;
+        const delay = initialDelay * Math.pow(2, i);
+        console.warn(`[RETRY] Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
+  }
+
+  /**
+   * Validiert ob eine Bild-URL tatsächlich geladen werden kann
+   */
+  function preloadImage(url, timeout = 5000) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const timer = setTimeout(() => {
+        img.src = '';
+        reject(new Error('Image preload timeout'));
+      }, timeout);
+      
+      img.onload = () => {
+        clearTimeout(timer);
+        resolve(true);
+      };
+      img.onerror = () => {
+        clearTimeout(timer);
+        reject(new Error('Image load failed'));
+      };
+      img.src = url;
+    });
+  }
+
+  /**
    * Robust: Holt das Bing Image of the Day (JSON) und gibt eine absolute Bild-URL zurück.
-   * Versucht: direkt → AllOrigins /raw → AllOrigins /get → cors.isomorphic-git
+   * Versucht: Cache → direkt → AllOrigins /raw → AllOrigins /get → cors.isomorphic-git → corsproxy.io
+   * Mit Retry-Logik und Caching für bessere Stabilität
    */
   async function fetchBingImage(mkt) {
     const market = mkt || "de-DE";
+    
+    // 1. Prüfe Cache zuerst
+    const cached = getCachedBingImage(market);
+    if (cached) return cached;
+    
     const base = `https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=${encodeURIComponent(
       market
     )}`;
 
     // Kandidaten: direkt + Proxys in Reihenfolge
     const candidates = [
-      { url: base, type: "direct" },
-      ...CORS_PROXIES.map((fn) => ({ url: fn(base), type: "proxy" })),
+      { url: base, type: "direct", timeout: 5000 },
+      ...CORS_PROXIES.map((fn, idx) => ({ 
+        url: fn(base), 
+        type: "proxy", 
+        timeout: 7000 + (idx * 1000) // Längere Timeouts für Proxys
+      })),
     ];
+
+    let lastError = null;
 
     for (const c of candidates) {
       try {
-        const res = await fetchWithTimeout(
-          c.url,
-          { cache: "no-store", credentials: "omit", mode: "cors" },
-          7000
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        // Verwende Retry-Logik für jede Quelle
+        const imageUrl = await retryWithBackoff(async () => {
+          console.log(`[BING] Trying ${c.type}: ${c.url.substring(0, 60)}...`);
+          
+          const res = await fetchWithTimeout(
+            c.url,
+            { cache: "no-store", credentials: "omit", mode: "cors" },
+            c.timeout
+          );
+          
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        // AllOrigins /get liefert JSON { contents: "..." }, /raw liefert direkt den Body
-        let text = await res.text();
-        if (c.url.includes("/get?url=")) {
-          const wrapper = JSON.parse(text);
-          text = wrapper.contents;
+          // AllOrigins /get liefert JSON { contents: "..." }, /raw liefert direkt den Body
+          let text = await res.text();
+          if (!text || text.trim() === '') {
+            throw new Error('Empty response');
+          }
+          
+          if (c.url.includes("/get?url=")) {
+            const wrapper = JSON.parse(text);
+            text = wrapper.contents;
+          }
+
+          const data = JSON.parse(text);
+          const img = data?.images?.[0];
+          
+          if (!img) {
+            throw new Error('No image data in response');
+          }
+          
+          const path =
+            img?.url ||
+            (img?.urlbase ? `${img.urlbase}_1920x1080.jpg` : null);
+          
+          if (!path) {
+            throw new Error('No image path found');
+          }
+          
+          const fullUrl = path.startsWith('http') ? path : "https://www.bing.com" + path;
+          
+          // Validiere dass das Bild tatsächlich geladen werden kann
+          try {
+            await preloadImage(fullUrl, 3000);
+            console.log(`[BING] Success with ${c.type}:`, fullUrl);
+            return fullUrl;
+          } catch (preloadErr) {
+            console.warn(`[BING] Image preload failed for ${fullUrl}:`, preloadErr.message);
+            throw new Error(`Image validation failed: ${preloadErr.message}`);
+          }
+        }, 1, 300); // 1 retry mit kurzem Delay
+        
+        // Bei Erfolg: cachen und zurückgeben
+        if (imageUrl) {
+          setCachedBingImage(market, imageUrl);
+          return imageUrl;
         }
-
-        const data = JSON.parse(text);
-        const img = data?.images?.[0];
-        const path =
-          img?.url ||
-          (img?.urlbase ? `${img.urlbase}_1920x1080.jpg` : null);
-        if (path) return "https://www.bing.com" + path;
       } catch (e) {
-        console.warn("[BING] Fallback next ->", c.url, e?.message || e);
+        lastError = e;
+        console.warn("[BING] Failed with", c.type, "->", e?.message || e);
         // try next
       }
     }
+    
+    console.error("[BING] All sources failed. Last error:", lastError);
     return null;
   }
 

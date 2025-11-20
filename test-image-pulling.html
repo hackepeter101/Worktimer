@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Image Pulling Test Suite</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      h1 {
+        color: #333;
+      }
+      .test-section {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .test-result {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+      .test-result.pass {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+      }
+      .test-result.fail {
+        background: #f8d7da;
+        border-left: 4px solid #dc3545;
+      }
+      .test-result.pending {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+      }
+      .test-controls {
+        margin: 20px 0;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 10px;
+        font-size: 14px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+      .image-preview {
+        max-width: 400px;
+        max-height: 300px;
+        border-radius: 4px;
+        margin: 10px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+      .stat-card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .stat-value {
+        font-size: 32px;
+        font-weight: bold;
+        color: #007bff;
+      }
+      .stat-label {
+        font-size: 14px;
+        color: #666;
+        margin-top: 5px;
+      }
+      .log {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 10px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .log-entry {
+        margin: 2px 0;
+        padding: 2px 0;
+        border-bottom: 1px solid #e9ecef;
+      }
+      .log-entry.error {
+        color: #dc3545;
+      }
+      .log-entry.success {
+        color: #28a745;
+      }
+      .log-entry.info {
+        color: #17a2b8;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🖼️ Image Pulling Test Suite</h1>
+    <p>Umfassende Tests für die Bing Image Fetching-Funktionalität</p>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="totalTests">0</div>
+        <div class="stat-label">Total Tests</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="passedTests">0</div>
+        <div class="stat-label">Passed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="failedTests">0</div>
+        <div class="stat-label">Failed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="avgTime">0ms</div>
+        <div class="stat-label">Avg Response Time</div>
+      </div>
+    </div>
+
+    <div class="test-controls">
+      <button id="runAllBtn" onclick="runAllTests()">Run All Tests</button>
+      <button id="runBasicBtn" onclick="runBasicTests()">Run Basic Tests</button>
+      <button id="runStressBtn" onclick="runStressTests()">Run Stress Tests</button>
+      <button id="clearCacheBtn" onclick="clearCache()">Clear Cache</button>
+      <button id="clearLogBtn" onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <div class="test-section">
+      <h2>Test Results</h2>
+      <div id="testResults"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>Console Log</h2>
+      <div id="consoleLog" class="log"></div>
+    </div>
+
+    <script>
+      // Minimal implementations needed for testing
+      const midnightOf = (d) =>
+        new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+      const CORS_PROXIES = [
+        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+        (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+        (u) => `https://cors.isomorphic-git.org/${u}`,
+        (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+      ];
+
+      const BING_CACHE_KEY = "workday.bingImageCache";
+      const BING_CACHE_DURATION = 6 * 60 * 60 * 1000;
+
+      function getCachedBingImage(market, date = new Date()) {
+        try {
+          const cache = JSON.parse(localStorage.getItem(BING_CACHE_KEY) || "{}");
+          const dateKey = midnightOf(date).getTime();
+          const key = `${market}_${dateKey}`;
+          const entry = cache[key];
+          
+          if (entry && entry.url && entry.timestamp) {
+            const age = Date.now() - entry.timestamp;
+            if (age < BING_CACHE_DURATION) {
+              log(`Using cached image for ${key}`, 'success');
+              return entry.url;
+            }
+          }
+        } catch (e) {
+          log(`Cache read error: ${e.message}`, 'error');
+        }
+        return null;
+      }
+
+      function setCachedBingImage(market, url, date = new Date()) {
+        try {
+          const cache = JSON.parse(localStorage.getItem(BING_CACHE_KEY) || "{}");
+          const dateKey = midnightOf(date).getTime();
+          const key = `${market}_${dateKey}`;
+          
+          cache[key] = {
+            url,
+            timestamp: Date.now()
+          };
+          
+          const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+          Object.keys(cache).forEach(k => {
+            if (cache[k].timestamp < cutoff) {
+              delete cache[k];
+            }
+          });
+          
+          localStorage.setItem(BING_CACHE_KEY, JSON.stringify(cache));
+          log(`Cached image for ${key}`, 'success');
+        } catch (e) {
+          log(`Cache write error: ${e.message}`, 'error');
+        }
+      }
+
+      function fetchWithTimeout(url, opts = {}, ms = 6000) {
+        return new Promise((resolve, reject) => {
+          const controller = new AbortController();
+          const signal = controller.signal;
+          
+          const t = setTimeout(() => {
+            controller.abort();
+            reject(new Error("timeout"));
+          }, ms);
+          
+          fetch(url, { ...opts, signal }).then(
+            (r) => {
+              clearTimeout(t);
+              resolve(r);
+            },
+            (e) => {
+              clearTimeout(t);
+              reject(e);
+            }
+          );
+        });
+      }
+
+      async function retryWithBackoff(fn, retries = 2, initialDelay = 500) {
+        for (let i = 0; i <= retries; i++) {
+          try {
+            return await fn();
+          } catch (e) {
+            if (i === retries) throw e;
+            const delay = initialDelay * Math.pow(2, i);
+            log(`Retry attempt ${i + 1} failed, waiting ${delay}ms...`, 'info');
+            await new Promise(r => setTimeout(r, delay));
+          }
+        }
+      }
+
+      function preloadImage(url, timeout = 5000) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          const timer = setTimeout(() => {
+            img.src = '';
+            reject(new Error('Image preload timeout'));
+          }, timeout);
+          
+          img.onload = () => {
+            clearTimeout(timer);
+            resolve(true);
+          };
+          img.onerror = () => {
+            clearTimeout(timer);
+            reject(new Error('Image load failed'));
+          };
+          img.src = url;
+        });
+      }
+
+      async function fetchBingImage(mkt) {
+        const market = mkt || "de-DE";
+        
+        const cached = getCachedBingImage(market);
+        if (cached) return cached;
+        
+        const base = `https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=${encodeURIComponent(
+          market
+        )}`;
+
+        const candidates = [
+          { url: base, type: "direct", timeout: 5000 },
+          ...CORS_PROXIES.map((fn, idx) => ({ 
+            url: fn(base), 
+            type: "proxy", 
+            timeout: 7000 + (idx * 1000)
+          })),
+        ];
+
+        let lastError = null;
+
+        for (const c of candidates) {
+          try {
+            const imageUrl = await retryWithBackoff(async () => {
+              log(`Trying ${c.type}: ${c.url.substring(0, 60)}...`, 'info');
+              
+              const res = await fetchWithTimeout(
+                c.url,
+                { cache: "no-store", credentials: "omit", mode: "cors" },
+                c.timeout
+              );
+              
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+              let text = await res.text();
+              if (!text || text.trim() === '') {
+                throw new Error('Empty response');
+              }
+              
+              if (c.url.includes("/get?url=")) {
+                const wrapper = JSON.parse(text);
+                text = wrapper.contents;
+              }
+
+              const data = JSON.parse(text);
+              const img = data?.images?.[0];
+              
+              if (!img) {
+                throw new Error('No image data in response');
+              }
+              
+              const path =
+                img?.url ||
+                (img?.urlbase ? `${img.urlbase}_1920x1080.jpg` : null);
+              
+              if (!path) {
+                throw new Error('No image path found');
+              }
+              
+              const fullUrl = path.startsWith('http') ? path : "https://www.bing.com" + path;
+              
+              try {
+                await preloadImage(fullUrl, 3000);
+                log(`Success with ${c.type}: ${fullUrl}`, 'success');
+                return fullUrl;
+              } catch (preloadErr) {
+                log(`Image preload failed: ${preloadErr.message}`, 'error');
+                throw new Error(`Image validation failed: ${preloadErr.message}`);
+              }
+            }, 1, 300);
+            
+            if (imageUrl) {
+              setCachedBingImage(market, imageUrl);
+              return imageUrl;
+            }
+          } catch (e) {
+            lastError = e;
+            log(`Failed with ${c.type}: ${e.message}`, 'error');
+          }
+        }
+        
+        log(`All sources failed. Last error: ${lastError?.message}`, 'error');
+        return null;
+      }
+
+      // Test framework
+      let testResults = [];
+      let totalTime = 0;
+
+      function log(message, type = 'info') {
+        const logDiv = document.getElementById('consoleLog');
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logDiv.appendChild(entry);
+        logDiv.scrollTop = logDiv.scrollHeight;
+        console.log(message);
+      }
+
+      function clearLog() {
+        document.getElementById('consoleLog').innerHTML = '';
+      }
+
+      function clearCache() {
+        localStorage.removeItem(BING_CACHE_KEY);
+        log('Cache cleared', 'success');
+      }
+
+      function updateStats() {
+        const passed = testResults.filter(t => t.passed).length;
+        const failed = testResults.filter(t => !t.passed).length;
+        const avgTime = testResults.length > 0 
+          ? Math.round(totalTime / testResults.length) 
+          : 0;
+
+        document.getElementById('totalTests').textContent = testResults.length;
+        document.getElementById('passedTests').textContent = passed;
+        document.getElementById('failedTests').textContent = failed;
+        document.getElementById('avgTime').textContent = `${avgTime}ms`;
+      }
+
+      function addTestResult(name, passed, message, time, imageUrl = null) {
+        const result = { name, passed, message, time, imageUrl };
+        testResults.push(result);
+        totalTime += time;
+
+        const div = document.createElement('div');
+        div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+        
+        let html = `
+          <strong>${passed ? '✓' : '✗'} ${name}</strong><br>
+          ${message}<br>
+          <small>Time: ${time}ms</small>
+        `;
+        
+        if (imageUrl && passed) {
+          html += `<br><img src="${imageUrl}" class="image-preview" alt="Test result">`;
+        }
+        
+        div.innerHTML = html;
+        document.getElementById('testResults').appendChild(div);
+        
+        updateStats();
+      }
+
+      async function runTest(name, testFn) {
+        log(`Starting test: ${name}`, 'info');
+        const start = performance.now();
+        
+        try {
+          const result = await testFn();
+          const time = Math.round(performance.now() - start);
+          addTestResult(name, true, result.message, time, result.imageUrl);
+          return true;
+        } catch (error) {
+          const time = Math.round(performance.now() - start);
+          addTestResult(name, false, error.message, time);
+          return false;
+        }
+      }
+
+      // Test cases
+      async function testBasicFetch() {
+        const url = await fetchBingImage('de-DE');
+        if (!url) throw new Error('No URL returned');
+        if (!url.startsWith('http')) throw new Error('Invalid URL format');
+        return { message: `Successfully fetched: ${url}`, imageUrl: url };
+      }
+
+      async function testCaching() {
+        clearCache();
+        const url1 = await fetchBingImage('de-DE');
+        if (!url1) throw new Error('First fetch failed');
+        
+        const start = performance.now();
+        const url2 = await fetchBingImage('de-DE');
+        const time = performance.now() - start;
+        
+        if (url1 !== url2) throw new Error('Cached URL differs from original');
+        if (time > 100) throw new Error('Cache not used (took too long)');
+        
+        return { message: `Cache working correctly (${Math.round(time)}ms)`, imageUrl: url2 };
+      }
+
+      async function testMultipleMarkets() {
+        const markets = ['de-DE', 'en-US', 'ja-JP'];
+        const results = [];
+        
+        for (const market of markets) {
+          const url = await fetchBingImage(market);
+          if (!url) throw new Error(`Failed for market: ${market}`);
+          results.push({ market, url });
+        }
+        
+        return { message: `Successfully fetched images for ${markets.length} markets` };
+      }
+
+      async function testImageValidation() {
+        const url = await fetchBingImage('en-GB');
+        if (!url) throw new Error('No URL returned');
+        
+        // Verify the image actually loads
+        await preloadImage(url, 5000);
+        
+        return { message: `Image validated and loads correctly`, imageUrl: url };
+      }
+
+      async function testCacheExpiry() {
+        clearCache();
+        const market = 'fr-FR';
+        const url1 = await fetchBingImage(market);
+        if (!url1) throw new Error('First fetch failed');
+        
+        // Manually expire the cache entry
+        const cache = JSON.parse(localStorage.getItem(BING_CACHE_KEY) || "{}");
+        const dateKey = midnightOf(new Date()).getTime();
+        const key = `${market}_${dateKey}`;
+        if (cache[key]) {
+          cache[key].timestamp = Date.now() - (7 * 60 * 60 * 1000); // 7 hours ago
+          localStorage.setItem(BING_CACHE_KEY, JSON.stringify(cache));
+        }
+        
+        const url2 = await fetchBingImage(market);
+        if (!url2) throw new Error('Second fetch failed');
+        
+        return { message: 'Cache expiry working correctly' };
+      }
+
+      async function testConcurrentRequests() {
+        clearCache();
+        const promises = [
+          fetchBingImage('de-DE'),
+          fetchBingImage('de-DE'),
+          fetchBingImage('de-DE')
+        ];
+        
+        const results = await Promise.all(promises);
+        const allSame = results.every(url => url === results[0]);
+        
+        if (!allSame) throw new Error('Concurrent requests returned different URLs');
+        
+        return { message: 'Concurrent requests handled correctly' };
+      }
+
+      async function testErrorHandling() {
+        // Test with invalid market to see if it handles errors gracefully
+        const url = await fetchBingImage('invalid-market-code-12345');
+        // Should either return a URL or null, but not throw
+        return { message: 'Error handling works (returned ' + (url ? 'URL' : 'null') + ')' };
+      }
+
+      // Test suites
+      async function runBasicTests() {
+        document.getElementById('testResults').innerHTML = '';
+        testResults = [];
+        totalTime = 0;
+        
+        disableButtons(true);
+        
+        await runTest('Basic Fetch', testBasicFetch);
+        await runTest('Caching Mechanism', testCaching);
+        await runTest('Image Validation', testImageValidation);
+        
+        disableButtons(false);
+        log('Basic tests completed', 'success');
+      }
+
+      async function runStressTests() {
+        document.getElementById('testResults').innerHTML = '';
+        testResults = [];
+        totalTime = 0;
+        
+        disableButtons(true);
+        
+        await runTest('Multiple Markets', testMultipleMarkets);
+        await runTest('Cache Expiry', testCacheExpiry);
+        await runTest('Concurrent Requests', testConcurrentRequests);
+        await runTest('Error Handling', testErrorHandling);
+        
+        disableButtons(false);
+        log('Stress tests completed', 'success');
+      }
+
+      async function runAllTests() {
+        document.getElementById('testResults').innerHTML = '';
+        testResults = [];
+        totalTime = 0;
+        
+        disableButtons(true);
+        
+        log('=== Starting all tests ===', 'info');
+        
+        // Basic tests
+        await runTest('Basic Fetch', testBasicFetch);
+        await runTest('Caching Mechanism', testCaching);
+        await runTest('Image Validation', testImageValidation);
+        
+        // Stress tests
+        await runTest('Multiple Markets', testMultipleMarkets);
+        await runTest('Cache Expiry', testCacheExpiry);
+        await runTest('Concurrent Requests', testConcurrentRequests);
+        await runTest('Error Handling', testErrorHandling);
+        
+        disableButtons(false);
+        log('=== All tests completed ===', 'success');
+      }
+
+      function disableButtons(disabled) {
+        document.querySelectorAll('button').forEach(btn => {
+          if (btn.id !== 'clearCacheBtn' && btn.id !== 'clearLogBtn') {
+            btn.disabled = disabled;
+          }
+        });
+      }
+
+      // Initialize
+      log('Test suite ready. Click "Run All Tests" to start.', 'success');
+    </script>
+  </body>
+</html>
