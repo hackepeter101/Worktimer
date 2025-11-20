@@ -358,52 +358,137 @@
   }
 
   /**
-   * Calculate average brightness of an image
-   * Returns a value between 0 (dark) and 255 (bright)
+   * Calculate average brightness of a specific region in an image
+   * @param {HTMLImageElement} img - Loaded image element
+   * @param {Object} rect - Rectangle defining the region {x, y, width, height} in pixels
+   * @returns {number} Average brightness (0-255)
    */
-  function getImageBrightness(imageUrl) {
+  function getRegionBrightness(img, rect) {
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      
+      // Set canvas to match the region size
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      
+      // Draw only the specific region of the image
+      ctx.drawImage(
+        img,
+        rect.x, rect.y, rect.width, rect.height,  // source rectangle
+        0, 0, rect.width, rect.height              // destination rectangle
+      );
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      let totalBrightness = 0;
+      
+      // Calculate brightness using relative luminance formula
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        // Using perceived brightness formula
+        const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+        totalBrightness += brightness;
+      }
+      
+      const avgBrightness = totalBrightness / (data.length / 4);
+      return avgBrightness;
+    } catch (error) {
+      console.warn("[Brightness] Error analyzing region:", error);
+      return 128; // Default to mid-brightness on error
+    }
+  }
+
+  /**
+   * Calculate brightness for specific elements based on their position
+   * @param {string} imageUrl - Background image URL
+   * @returns {Promise<Map>} Map of element selector to brightness value
+   */
+  function getElementBrightness(imageUrl) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = "Anonymous";
       
       img.onload = () => {
         try {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
+          // Get viewport dimensions
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
           
-          // Use smaller dimensions for faster processing
-          const maxDim = 50;
-          const scale = Math.min(maxDim / img.width, maxDim / img.height);
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
+          // Calculate image dimensions as rendered (cover mode)
+          const imgAspect = img.width / img.height;
+          const viewAspect = viewportWidth / viewportHeight;
           
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          let renderWidth, renderHeight, offsetX, offsetY;
           
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const data = imageData.data;
-          let totalBrightness = 0;
-          
-          // Calculate brightness using relative luminance formula
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            // Using perceived brightness formula
-            const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
-            totalBrightness += brightness;
+          if (imgAspect > viewAspect) {
+            // Image is wider - height fills viewport
+            renderHeight = viewportHeight;
+            renderWidth = renderHeight * imgAspect;
+            offsetX = (renderWidth - viewportWidth) / 2;
+            offsetY = 0;
+          } else {
+            // Image is taller - width fills viewport
+            renderWidth = viewportWidth;
+            renderHeight = renderWidth / imgAspect;
+            offsetX = 0;
+            offsetY = (renderHeight - viewportHeight) / 2;
           }
           
-          const avgBrightness = totalBrightness / (data.length / 4);
-          resolve(avgBrightness);
+          // Scale factor from rendered size to actual image size
+          const scaleX = img.width / renderWidth;
+          const scaleY = img.height / renderHeight;
+          
+          const brightnessMap = new Map();
+          
+          // List of elements to analyze
+          const elements = [
+            '#countdownBig',
+            '#labelBig',
+            '#countdownSmall',
+            '#labelSmall',
+            '#progressStart',
+            '#progressNow',
+            '#progressEnd'
+          ];
+          
+          for (const selector of elements) {
+            const element = document.querySelector(selector);
+            if (!element) continue;
+            
+            const rect = element.getBoundingClientRect();
+            
+            // Convert viewport coordinates to image coordinates
+            const x = Math.max(0, Math.min((rect.left + offsetX) * scaleX, img.width - 1));
+            const y = Math.max(0, Math.min((rect.top + offsetY) * scaleY, img.height - 1));
+            const width = Math.min(rect.width * scaleX, img.width - x);
+            const height = Math.min(rect.height * scaleY, img.height - y);
+            
+            // Skip if region is invalid
+            if (width <= 0 || height <= 0) continue;
+            
+            const brightness = getRegionBrightness(img, {
+              x: Math.floor(x),
+              y: Math.floor(y),
+              width: Math.ceil(width),
+              height: Math.ceil(height)
+            });
+            
+            brightnessMap.set(selector, brightness);
+          }
+          
+          resolve(brightnessMap);
         } catch (error) {
-          console.warn("[Brightness] Error analyzing image:", error);
-          resolve(128); // Default to mid-brightness on error
+          console.warn("[Brightness] Error analyzing elements:", error);
+          resolve(new Map()); // Return empty map on error
         }
       };
       
       img.onerror = () => {
         console.warn("[Brightness] Failed to load image for analysis");
-        resolve(128); // Default to mid-brightness on error
+        resolve(new Map()); // Return empty map on error
       };
       
       img.src = imageUrl;
@@ -411,28 +496,55 @@
   }
 
   /**
-   * Adjust text colors based on background brightness
-   * @param {number} brightness - Average brightness (0-255)
+   * Adjust individual element text colors based on their specific background brightness
+   * @param {Map} brightnessMap - Map of element selector to brightness value
    */
-  function adjustTextColors(brightness) {
-    const root = document.documentElement;
-    
+  function adjustElementTextColors(brightnessMap) {
     // Threshold for determining if background is light or dark
     // Using 140 as threshold (slightly above middle to favor dark text)
-    const isLightBackground = brightness > 140;
+    const threshold = 140;
     
-    if (isLightBackground) {
-      // Dark text on light background
-      root.style.setProperty("--fg", "#0b0c0f");
-      root.style.setProperty("--muted", "#4a5568");
-      root.style.setProperty("--card", "rgba(255, 255, 255, 0.85)");
-      document.body.style.color = "#0b0c0f";
-    } else {
-      // Light text on dark background
-      root.style.setProperty("--fg", "#e9eef4");
-      root.style.setProperty("--muted", "#a7b0bf");
-      root.style.setProperty("--card", "#14161b");
-      document.body.style.color = "#e9eef4";
+    // Define light and dark color schemes
+    const lightText = "#e9eef4";
+    const darkText = "#0b0c0f";
+    const lightMuted = "#a7b0bf";
+    const darkMuted = "#4a5568";
+    
+    for (const [selector, brightness] of brightnessMap) {
+      const element = document.querySelector(selector);
+      if (!element) continue;
+      
+      const isLightBackground = brightness > threshold;
+      
+      if (isLightBackground) {
+        // Dark text on light background
+        element.style.color = darkText;
+        
+        // Add text shadow for better readability
+        element.style.textShadow = "0 1px 2px rgba(255, 255, 255, 0.5)";
+        
+        // Apply muted color for subtitle elements
+        if (element.classList.contains('subtitle') || 
+            element.id === 'progressStart' || 
+            element.id === 'progressNow' || 
+            element.id === 'progressEnd') {
+          element.style.color = darkMuted;
+        }
+      } else {
+        // Light text on dark background
+        element.style.color = lightText;
+        
+        // Add text shadow for better readability
+        element.style.textShadow = "0 2px 8px rgba(0, 0, 0, 0.5)";
+        
+        // Apply muted color for subtitle elements
+        if (element.classList.contains('subtitle') || 
+            element.id === 'progressStart' || 
+            element.id === 'progressNow' || 
+            element.id === 'progressEnd') {
+          element.style.color = lightMuted;
+        }
+      }
     }
   }
 
@@ -472,11 +584,11 @@
     body.style.backgroundPosition = "center";
     body.style.backgroundRepeat = "no-repeat";
     
-    // Auto-adjust text color based on background image brightness
+    // Auto-adjust text color based on background image brightness per element
     if (url && (theme.source === "bing" || theme.bgDaily || theme.bgImage)) {
       try {
-        const brightness = await getImageBrightness(url);
-        adjustTextColors(brightness);
+        const brightnessMap = await getElementBrightness(url);
+        adjustElementTextColors(brightnessMap);
       } catch (error) {
         console.warn("[Theme] Failed to adjust text colors:", error);
       }
@@ -1540,6 +1652,33 @@
     spawn();
     if (!confettiRAF) confettiRAF = requestAnimationFrame(stepConfetti);
   }
+
+  /* ===== Window resize handler for text color recalculation ===== */
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    // Debounce resize events
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(async () => {
+      const currentTheme = loadTheme();
+      const theme = currentTheme ? getThemeByKey(currentTheme) : null;
+      if (!theme) return;
+      
+      // Only recalculate if there's a background image
+      const bgImage = document.body.style.backgroundImage;
+      if (bgImage && bgImage !== 'none' && bgImage !== '') {
+        // Extract URL from background-image CSS property
+        const urlMatch = bgImage.match(/url\(["']?(.+?)["']?\)/);
+        if (urlMatch && urlMatch[1]) {
+          try {
+            const brightnessMap = await getElementBrightness(urlMatch[1]);
+            adjustElementTextColors(brightnessMap);
+          } catch (error) {
+            console.warn("[Theme] Failed to recalculate text colors on resize:", error);
+          }
+        }
+      }
+    }, 300); // Wait 300ms after last resize event
+  }, { passive: true });
 
   /* ===== Init ===== */
   (async () => {
