@@ -1051,11 +1051,117 @@
     if (el && theme) el.textContent = theme.name.toLowerCase();
   }
   
-  // Full rules editor (modal for complex editing)
+  // Full rules editor (simplified inline form)
   function openFullRulesEditor(ruleId) {
-    closeSettings();
-    // For now, just show an alert - we can implement a full editor later
-    alert('Rule editor not yet implemented in simplified version. Rule ID: ' + ruleId);
+    const rule = rules.find(r => r.id === ruleId);
+    if (!rule) return;
+    
+    const breaksHtml = (rule.breaks || []).map(b => `
+      <div class="break-edit" data-id="${escapeAttr(b.id)}">
+        <input type="time" class="simple-input break-start" value="${escapeAttr(b.start)}" />
+        <span>to</span>
+        <input type="time" class="simple-input break-end" value="${escapeAttr(b.end)}" />
+        <button class="icon-btn delete-break" title="Remove">
+          <svg width="16" height="16"><use href="#icon-trash"></use></svg>
+        </button>
+      </div>
+    `).join('');
+    
+    const daysArr = normalizeDaysString(rule.days);
+    const dayButtons = weekdayOrder.map(d => {
+      const active = daysArr.includes(d);
+      return `<button class="simple-btn day-toggle ${active ? 'active' : ''}" data-day="${d}">${d}</button>`;
+    }).join('');
+    
+    const content = `
+      <div class="rule-editor">
+        <div class="simple-option">
+          <div class="simple-option-label">rule name</div>
+          <input type="text" class="simple-input" id="ruleName" value="${escapeAttr(rule.name)}" />
+        </div>
+        
+        <div class="simple-option">
+          <div class="simple-option-label">days</div>
+          <div class="simple-option-buttons">
+            ${dayButtons}
+          </div>
+        </div>
+        
+        <div class="simple-option">
+          <div class="simple-option-label">work time</div>
+          <div class="time-inputs">
+            <input type="time" class="simple-input" id="ruleStart" value="${escapeAttr(rule.start)}" />
+            <span>to</span>
+            <input type="time" class="simple-input" id="ruleEnd" value="${escapeAttr(rule.end)}" />
+          </div>
+        </div>
+        
+        <div class="simple-option">
+          <div class="simple-option-label">breaks</div>
+          <div class="breaks-list" id="breaksList">
+            ${breaksHtml}
+            <button class="simple-btn" id="addBreak">+ add break</button>
+          </div>
+        </div>
+        
+        <div class="editor-actions">
+          <button class="simple-btn active" id="saveRule">save</button>
+          <button class="simple-btn" id="cancelRule">cancel</button>
+        </div>
+      </div>
+    `;
+    
+    openSettings(content);
+    
+    // Save rule button
+    $("#saveRule", settingsContent)?.addEventListener('click', () => {
+      rule.name = $("#ruleName", settingsContent)?.value || rule.name;
+      rule.start = $("#ruleStart", settingsContent)?.value || rule.start;
+      rule.end = $("#ruleEnd", settingsContent)?.value || rule.end;
+      
+      // Update breaks
+      const breakElems = $$('.break-edit', settingsContent);
+      rule.breaks = breakElems.map(elem => {
+        const id = elem.dataset.id;
+        const start = elem.querySelector('.break-start')?.value;
+        const end = elem.querySelector('.break-end')?.value;
+        return { id, start, end };
+      });
+      
+      saveRules(rules);
+      $("#rulesBtn")?.click(); // Go back to rules list
+    });
+    
+    // Cancel button
+    $("#cancelRule", settingsContent)?.addEventListener('click', () => {
+      $("#rulesBtn")?.click(); // Go back to rules list
+    });
+    
+    // Day toggles
+    $$('.day-toggle', settingsContent).forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        const activeDays = $$('.day-toggle.active', settingsContent).map(b => b.dataset.day);
+        rule.days = activeDays.join(',');
+      });
+    });
+    
+    // Add break button
+    $("#addBreak", settingsContent)?.addEventListener('click', () => {
+      const newBreak = { id: crypto.randomUUID(), start: "12:30", end: "13:00" };
+      rule.breaks = rule.breaks || [];
+      rule.breaks.push(newBreak);
+      openFullRulesEditor(ruleId); // Refresh the editor
+    });
+    
+    // Delete break buttons
+    $$('.delete-break', settingsContent).forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const breakId = e.target.closest('.break-edit').dataset.id;
+        rule.breaks = rule.breaks.filter(b => b.id !== breakId);
+        openFullRulesEditor(ruleId); // Refresh the editor
+      });
+    });
   }
 
   /* ===== Rules (load/save/default) ===== */

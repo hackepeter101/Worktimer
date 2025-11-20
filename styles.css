@@ -396,6 +396,57 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   color: #0b0c0f;
 }
 
+/* Rule Editor */
+.rule-editor {
+  max-width: 100%;
+}
+.simple-input {
+  background: color-mix(in oklab, var(--fg) 5%, transparent);
+  border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+  color: var(--fg);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: var(--ui-font);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.simple-input:focus {
+  border-color: var(--accent);
+}
+.simple-input[type="text"] {
+  width: 100%;
+}
+.time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.time-inputs span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.breaks-list {
+  display: grid;
+  gap: 8px;
+}
+.break-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.break-edit span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.editor-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in oklab, var(--fg) 5%, transparent);
+}
+
 /* Rules List (simplified) */
 .rules-list-simple {
   display: grid;
