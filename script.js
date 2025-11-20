@@ -30,7 +30,8 @@
   const escapeAttr = (s = "") => escapeHtml(s).replace(/"/g, "&quot;");
 
   const parseHM = (hm) => {
-    const m = /^(\d{1,2}):(\d{2})$/.exec((hm ?? "").trim());
+    if (!hm || typeof hm !== 'string') return null;
+    const m = /^(\d{1,2}):(\d{2})$/.exec(hm.trim());
     if (!m) return null;
     const h = +m[1],
       mi = +m[2];
@@ -41,9 +42,21 @@
     new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
   /* ===== Layout ===== */
-  const loadLayout = () =>
-    localStorage.getItem(LS_KEY_LAYOUT) || "big-total";
-  const saveLayout = (l) => localStorage.setItem(LS_KEY_LAYOUT, l);
+  const loadLayout = () => {
+    try {
+      return localStorage.getItem(LS_KEY_LAYOUT) || "big-total";
+    } catch (e) {
+      console.error("[Layout] Failed to load layout:", e);
+      return "big-total";
+    }
+  };
+  const saveLayout = (l) => {
+    try {
+      localStorage.setItem(LS_KEY_LAYOUT, l);
+    } catch (e) {
+      console.error("[Layout] Failed to save layout:", e);
+    }
+  };
 
   /* ===== THEME SYSTEM v2 (no presets, per-theme Bing, edit) ===== */
   function loadThemeStore() {
@@ -58,7 +71,11 @@
     }
   }
   function saveThemeStore(store) {
-    localStorage.setItem(THEME_STORE_KEY, JSON.stringify(store));
+    try {
+      localStorage.setItem(THEME_STORE_KEY, JSON.stringify(store));
+    } catch (e) {
+      console.error("[Theme] Failed to save theme store:", e);
+    }
   }
   let themeStore = loadThemeStore();
 
@@ -85,14 +102,21 @@
   }
 
   function loadTheme() {
-    return (
-      localStorage.getItem(LS_KEY_THEME) ||
-      themeStore.themes[0]?.key ||
-      null
-    );
+    try {
+      const stored = localStorage.getItem(LS_KEY_THEME);
+      if (stored) return stored;
+      return themeStore.themes[0]?.key || null;
+    } catch (e) {
+      console.error("[Theme] Failed to load theme:", e);
+      return themeStore.themes[0]?.key || null;
+    }
   }
   function saveTheme(key) {
-    if (key) localStorage.setItem(LS_KEY_THEME, key);
+    try {
+      if (key) localStorage.setItem(LS_KEY_THEME, key);
+    } catch (e) {
+      console.error("[Theme] Failed to save theme:", e);
+    }
   }
   function getThemeByKey(key) {
     return themeStore.themes.find((t) => t.key === key) || null;
@@ -147,6 +171,12 @@
       const dateKey = midnightOf(date).getTime();
       const key = `${market}_${dateKey}`;
       
+      // Validate inputs
+      if (!market || !url) {
+        console.warn("[BING] Invalid cache inputs");
+        return;
+      }
+      
       cache[key] = {
         url,
         timestamp: Date.now()
@@ -155,7 +185,7 @@
       // Cleanup old entries (älter als 7 Tage)
       const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
       Object.keys(cache).forEach(k => {
-        if (cache[k].timestamp < cutoff) {
+        if (cache[k] && cache[k].timestamp < cutoff) {
           delete cache[k];
         }
       });
@@ -195,16 +225,20 @@
    * Retry-Helper mit exponentialem Backoff
    */
   async function retryWithBackoff(fn, retries = 2, initialDelay = 500) {
+    let lastError = null;
     for (let i = 0; i <= retries; i++) {
       try {
         return await fn();
       } catch (e) {
+        lastError = e;
         if (i === retries) throw e;
         const delay = initialDelay * Math.pow(2, i);
         console.warn(`[RETRY] Attempt ${i + 1} failed, retrying in ${delay}ms...`);
         await new Promise(r => setTimeout(r, delay));
       }
     }
+    // This should never be reached, but adding for safety
+    throw lastError || new Error('Retry failed');
   }
 
   /**
@@ -340,7 +374,11 @@
         let seed = Number(localStorage.getItem(seedKey));
         if (!Number.isFinite(seed)) {
           seed = Math.floor(Math.random() * 1e6);
-          localStorage.setItem(seedKey, String(seed));
+          try {
+            localStorage.setItem(seedKey, String(seed));
+          } catch (e) {
+            console.warn("[Theme] Failed to save seed:", e);
+          }
         }
         const dayKey =
           Math.floor(midnightOf(now).getTime() / 86400000) ^ seed;
@@ -350,8 +388,11 @@
         const dayIndex = Math.floor(midnightOf(now).getTime() / 86400000);
         idx = ((dayIndex % list.length) + list.length) % list.length;
       } else {
-        idx = (getDayOfYear(now) - 1) % list.length;
+        const dayOfYear = getDayOfYear(now);
+        idx = ((dayOfYear - 1) % list.length + list.length) % list.length;
       }
+      // Ensure idx is within bounds
+      idx = Math.max(0, Math.min(idx, list.length - 1));
       return list[idx];
     }
     return theme.bgImage || null;
@@ -363,13 +404,31 @@
    */
   function getImageBrightness(imageUrl) {
     return new Promise((resolve, reject) => {
+      if (!imageUrl) {
+        resolve(128); // Default to mid-brightness
+        return;
+      }
+      
       const img = new Image();
       img.crossOrigin = "Anonymous";
       
+      const timeout = setTimeout(() => {
+        img.src = '';
+        console.warn("[Brightness] Timeout analyzing image");
+        resolve(128); // Default to mid-brightness on timeout
+      }, 5000);
+      
       img.onload = () => {
+        clearTimeout(timeout);
         try {
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
+          
+          if (!ctx) {
+            console.warn("[Brightness] Failed to get canvas context");
+            resolve(128);
+            return;
+          }
           
           // Use smaller dimensions for faster processing
           const maxDim = 50;
@@ -402,6 +461,7 @@
       };
       
       img.onerror = () => {
+        clearTimeout(timeout);
         console.warn("[Brightness] Failed to load image for analysis");
         resolve(128); // Default to mid-brightness on error
       };
@@ -485,12 +545,16 @@
 
   let dailyBgTimer = null;
   function scheduleDailyBgRefresh() {
-    if (dailyBgTimer) clearTimeout(dailyBgTimer);
+    if (dailyBgTimer) {
+      clearTimeout(dailyBgTimer);
+      dailyBgTimer = null;
+    }
     const now = new Date();
     const next = new Date(now);
     next.setHours(24, 0, 0, 0);
     const ms = next - now + 1000;
     dailyBgTimer = setTimeout(() => {
+      dailyBgTimer = null;
       applyTheme(loadTheme(), new Date());
       scheduleDailyBgRefresh();
     }, ms);
@@ -560,17 +624,21 @@
         updateThemeSelection();
       });
       // Bearbeiten
-      chip
-        .querySelector(".edit-theme")
-        ?.addEventListener("click", (e) => {
+      const editBtn = chip.querySelector(".edit-theme");
+      if (editBtn) {
+        editBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           startEditTheme(t.key);
         });
+      }
       // Löschen
-      chip.querySelector(".del-theme")?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        deleteCustomTheme(t.key);
-      });
+      const delBtn = chip.querySelector(".del-theme");
+      if (delBtn) {
+        delBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteCustomTheme(t.key);
+        });
+      }
 
       themeGrid.appendChild(chip);
     }
@@ -902,7 +970,11 @@
     }
   }
   function saveRules(r) {
-    localStorage.setItem(LS_KEY_RULES, JSON.stringify(r));
+    try {
+      localStorage.setItem(LS_KEY_RULES, JSON.stringify(r));
+    } catch (e) {
+      console.error("[Rules] Failed to save rules:", e);
+    }
   }
   let rules = loadRules();
 
@@ -1119,7 +1191,8 @@
       $(".inp-name", card)?.addEventListener("input", (e) => {
         rule.name = e.target.value;
         saveRules(rules);
-        $(".title", card).textContent = rule.name || "Ohne Titel";
+        const titleEl = $(".title", card);
+        if (titleEl) titleEl.textContent = rule.name || "Ohne Titel";
       });
 
       $(".inp-start", card)?.addEventListener("change", (e) => {
@@ -1380,14 +1453,14 @@
       // totals
       const totalRemain = st.windowEnd - now;
       const totalLabel = `Gesamt bis Ende: ${toHM(st.windowEnd)} (${
-        st.rule.name || "Arbeit"
+        st.rule?.name || "Arbeit"
       })`;
 
       // part (pause/feierabend)
       const np = nextPauseTarget(st, now);
       const partRemain = np.target - now;
       const partLabel = `Bis ${np.label}: ${toHM(np.target)} (${
-        st.rule.name || "Arbeit"
+        st.rule?.name || "Arbeit"
       })`;
 
       if (layout === "big-total") {
@@ -1409,27 +1482,27 @@
       // progress
       const total = st.windowEnd - st.windowStart;
       const done = now - st.windowStart;
-      const pct = Math.max(0, Math.min(100, (done / total) * 100));
+      const pct = total > 0 ? Math.max(0, Math.min(100, (done / total) * 100)) : 0;
 
       if (progressBar) progressBar.style.width = pct.toFixed(2) + "%";
-      progressEl?.setAttribute("aria-valuenow", pct.toFixed(0));
+      if (progressEl) progressEl.setAttribute("aria-valuenow", pct.toFixed(0));
       if (progressStart) progressStart.textContent = toHM(st.windowStart);
       if (progressEnd) progressEnd.textContent = toHM(st.windowEnd);
 
       // break style
-      progressEl?.classList.toggle("is-break", st.mode === "break");
-      progressBar?.classList.toggle("is-break", st.mode === "break");
+      if (progressEl) progressEl.classList.toggle("is-break", st.mode === "break");
+      if (progressBar) progressBar.classList.toggle("is-break", st.mode === "break");
     } else {
       if (countdownBig) countdownBig.textContent = "–:–";
       if (labelBig) labelBig.textContent = "Keine aktive/kommende Regel";
       if (countdownSmall) countdownSmall.textContent = "–:–";
       if (labelSmall) labelSmall.textContent = "—";
       if (progressBar) progressBar.style.width = "0%";
-      progressEl?.setAttribute("aria-valuenow", "0");
+      if (progressEl) progressEl.setAttribute("aria-valuenow", "0");
       if (progressStart) progressStart.textContent = "–:–";
       if (progressEnd) progressEnd.textContent = "–:–";
-      progressEl?.classList.remove("is-break");
-      progressBar?.classList.remove("is-break");
+      if (progressEl) progressEl.classList.remove("is-break");
+      if (progressBar) progressBar.classList.remove("is-break");
     }
 
     const pn = $("#progressNow");
@@ -1495,7 +1568,10 @@
   function stepConfetti() {
     if (!ctx || !confettiCanvas) {
       confettiParticles = [];
-      confettiRAF = null;
+      if (confettiRAF !== null) {
+        cancelAnimationFrame(confettiRAF);
+        confettiRAF = null;
+      }
       return;
     }
     const w = confettiCanvas.width,
@@ -1518,6 +1594,9 @@
     if (confettiParticles.length > 0) {
       confettiRAF = requestAnimationFrame(stepConfetti);
     } else {
+      if (confettiRAF !== null) {
+        cancelAnimationFrame(confettiRAF);
+      }
       confettiRAF = null;
       ctx.clearRect(0, 0, w, h);
     }
