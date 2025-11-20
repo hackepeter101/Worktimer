@@ -912,7 +912,7 @@
   const defaultRules = [
     {
       id: crypto.randomUUID(),
-      name: "Standard",
+      name: "Default",
       days: "Mo,Di,Mi,Do,Fr",
       start: "09:00",
       end: "17:00",
@@ -1022,21 +1022,21 @@
     return `
         <div class="break-row" data-id="${escapeAttr(id)}">
           <div class="col-5">
-            <label>Von
+            <label>From
               <input class="inp-break-start input" type="time" value="${escapeAttr(
                 s
               )}" />
             </label>
           </div>
           <div class="col-5">
-            <label>Bis
+            <label>To
               <input class="inp-break-end input" type="time" value="${escapeAttr(
                 e
               )}" />
             </label>
           </div>
           <div class="col-2" style="display:flex;gap:8px;justify-content:flex-end;">
-            <button type="button" class="btn icon del-break" title="Entfernen" aria-label="Pause entfernen">
+            <button type="button" class="btn icon del-break" title="Remove" aria-label="Remove break">
               <svg aria-hidden="true" width="18" height="18"><use href="#icon-trash"></use></svg>
             </button>
           </div>
@@ -1065,9 +1065,9 @@
           <div class="days-wrap">
             <div class="days-shortcuts">
               <button type="button" class="shortcut" data-days="Mo,Di,Mi,Do,Fr">Mo–Fr</button>
-              <button type="button" class="shortcut" data-days="Sa,So">Sa–So</button>
-              <button type="button" class="shortcut" data-days="Mo,Di,Mi,Do,Fr,Sa,So">Alle</button>
-              <button type="button" class="shortcut" data-days="">Keine</button>
+              <button type="button" class="shortcut" data-days="Sa,So">Sa–Su</button>
+              <button type="button" class="shortcut" data-days="Mo,Di,Mi,Do,Fr,Sa,So">All</button>
+              <button type="button" class="shortcut" data-days="">None</button>
             </div>
             <div class="days-grid">${dayChips}</div>
           </div>
@@ -1082,12 +1082,12 @@
             <div class="icon" style="display:inline-flex;align-items:center;gap:8px;">
               <svg aria-hidden="true" width="18" height="18"><use href="#icon-clock-simple"></use></svg>
               <span class="title">${escapeHtml(
-                rule.name || "Ohne Titel"
+                rule.name || "Untitled"
               )}</span>
             </div>
-            <button class="btn danger btn-delete" title="Regel löschen" type="button">
+            <button class="btn danger btn-delete" title="Delete Rule" type="button">
               <svg aria-hidden="true" width="18" height="18"><use href="#icon-trash"></use></svg>
-              Löschen
+              Delete
             </button>
           </div>
 
@@ -1096,12 +1096,12 @@
               <label>Name
                 <input class="inp-name input" type="text" value="${escapeAttr(
                   rule.name
-                )}" placeholder="z. B. Büro" />
+                )}" placeholder="e.g. Office" />
               </label>
             </div>
 
             <div class="col-8">
-              <label>Wochentage
+              <label>Weekdays
                 ${daysHTML}
               </label>
             </div>
@@ -1114,7 +1114,7 @@
               </label>
             </div>
             <div class="col-2">
-              <label>Ende
+              <label>End
                 <input class="inp-end input" type="time" value="${escapeAttr(
                   rule.end
                 )}" />
@@ -1122,13 +1122,13 @@
             </div>
 
             <div class="col-12">
-              <label>Pausen
+              <label>Breaks
                 <div class="breaks">
                   ${breaksRows}
                   <div>
                     <button type="button" class="btn add-break">
                       <svg aria-hidden="true" width="18" height="18"><use href="#icon-plus"></use></svg>
-                      Pause hinzufügen
+                      Add Break
                     </button>
                   </div>
                 </div>
@@ -1374,12 +1374,12 @@
   function nextPauseTarget(state, now) {
     const segs = state.segments || [];
     if (state.mode === "break") {
-      return { target: state.end, label: "Pause-Ende" };
+      return { target: state.end, label: "Break End" };
     }
     const ref = state.type === "upcoming" ? state.start : now;
     const nb = segs.find((s) => s.type === "break" && s.start > ref);
-    if (nb) return { target: nb.start, label: "Pause" };
-    return { target: state.windowEnd, label: "Feierabend" };
+    if (nb) return { target: nb.start, label: "Break" };
+    return { target: state.windowEnd, label: "End of Work" };
   }
 
   const stateMem = { lastType: "none", lastRuleId: null, lastMode: null };
@@ -1409,15 +1409,15 @@
     if (st.type === "during" || st.type === "upcoming") {
       // totals
       const totalRemain = st.windowEnd - now;
-      const totalLabel = `Gesamt bis Ende: ${toHM(st.windowEnd)} (${
-        st.rule.name || "Arbeit"
+      const totalLabel = `Total until End: ${toHM(st.windowEnd)} (${
+        st.rule.name || "Work"
       })`;
 
       // part (pause/feierabend)
       const np = nextPauseTarget(st, now);
       const partRemain = np.target - now;
-      const partLabel = `Bis ${np.label}: ${toHM(np.target)} (${
-        st.rule.name || "Arbeit"
+      const partLabel = `Until ${np.label}: ${toHM(np.target)} (${
+        st.rule.name || "Work"
       })`;
 
       if (layout === "big-total") {
@@ -1463,7 +1463,7 @@
     }
 
     const pn = $("#progressNow");
-    if (pn) pn.textContent = "Jetzt";
+    if (pn) pn.textContent = "Now";
   }
 
   /* ===== Layout Radios ===== */
