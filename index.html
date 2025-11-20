@@ -72,12 +72,6 @@
         <svg aria-hidden="true"><use href="#icon-clock"></use></svg>
         <span>Workday Countdown</span>
       </div>
-      <div class="actions">
-        <button class="btn" id="openSettingsBtn" title="Settings">
-          <svg aria-hidden="true"><use href="#icon-sliders"></use></svg>
-          Settings
-        </button>
-      </div>
     </header>
 
     <main class="center">
@@ -110,144 +104,37 @@
     </main>
 
     <footer>
-      <span></span>
-      <div class="actions"><!-- (ehem. Presets entfernt) --></div>
+      <div class="footer-settings">
+        <button class="setting-btn" id="layoutBtn" title="Toggle display mode">
+          <svg aria-hidden="true" width="16" height="16"><use href="#icon-grid"></use></svg>
+          <span id="layoutLabel">total</span>
+        </button>
+        <button class="setting-btn" id="themeBtn" title="Change theme">
+          <svg aria-hidden="true" width="16" height="16"><use href="#icon-sliders"></use></svg>
+          <span id="themeLabel">theme #1</span>
+        </button>
+        <button class="setting-btn" id="rulesBtn" title="Manage rules">
+          <svg aria-hidden="true" width="16" height="16"><use href="#icon-calendar"></use></svg>
+          <span>rules</span>
+        </button>
+      </div>
     </footer>
 
-    <!-- Settings Overlay -->
+    <!-- Settings Overlay (Simplified) -->
     <div class="overlay" id="overlay" aria-hidden="true">
       <section
-        class="panel"
+        class="panel simple-panel"
         role="dialog"
         aria-modal="true"
         aria-labelledby="panelTitle"
       >
-        <h3 id="panelTitle">Settings</h3>
-
-        <!-- Display: Segmented Control -->
-        <div class="card" id="layoutCard">
-          <div class="card-head">
-            <div class="icon">
-              <svg aria-hidden="true" width="18" height="18"><use href="#icon-grid"></use></svg>
-              <span>Display</span>
-            </div>
-          </div>
-          <div class="segmented" role="tablist" aria-label="Display toggle">
-            <input
-              type="radio"
-              id="layout-total"
-              name="layout"
-              value="big-total"
-            />
-            <label for="layout-total">
-              <b>Total</b>
-              <small>Small: Break</small>
-            </label>
-
-            <input
-              type="radio"
-              id="layout-break"
-              name="layout"
-              value="big-break"
-            />
-            <label for="layout-break">
-              <b>Until Break</b>
-              <small>Small: Total</small>
-            </label>
-          </div>
+        <div class="panel-header">
+          <h3 id="panelTitle">settings</h3>
+          <button class="close-btn" id="closePanel" aria-label="Close">×</button>
         </div>
 
-        <!-- Themes (Pills) -->
-        <div class="card" id="themeCard">
-          <div class="theme-grid" id="themeGrid"></div>
-        </div>
-
-        <div class="card">
-          <h3>Add / Edit Theme</h3>
-          <div class="theme-manager">
-            <div class="field">
-              <label for="themeName">Theme Name</label>
-              <input
-                type="text"
-                id="themeName"
-                class="input"
-                placeholder="Theme # will be set automatically"
-              />
-            </div>
-            <div class="field">
-              <label>Primary Color</label>
-              <input type="color" id="accentColor" value="#6ea8fe" />
-            </div>
-            <div class="field">
-              <label>Secondary Color</label>
-              <input type="color" id="accent2Color" value="#b17aff" />
-            </div>
-            <div class="field">
-              <label>Background Color</label>
-              <input type="color" id="bgColor" value="#0b0c0f" />
-            </div>
-            <div class="field">
-              <label for="bgImage">Image URL (optional)</label>
-              <input
-                type="text"
-                id="bgImage"
-                class="input"
-                placeholder="https://a.jpg, https://b.jpg, … (comma-separated for Daily)"
-              />
-            </div>
-
-            <!-- Bing Daily per Theme -->
-            <div class="field">
-              <label for="useBingDaily">Daily Image from Bing</label>
-              <input type="checkbox" id="useBingDaily" />
-            </div>
-            <div class="field" id="bingOptions" style="display: none">
-              <label for="bingMarket">Bing Market</label>
-              <select id="bingMarket" class="input">
-                <option value="en-US" selected>en-US (USA)</option>
-                <option value="en-GB">en-GB (UK)</option>
-                <option value="de-DE">de-DE (Germany)</option>
-                <option value="fr-FR">fr-FR (France)</option>
-                <option value="es-ES">es-ES (Spain)</option>
-                <option value="it-IT">it-IT (Italy)</option>
-                <option value="ja-JP">ja-JP (Japan)</option>
-              </select>
-              <button class="btn" id="refreshBing">Refresh Image</button>
-            </div>
-
-            <div class="actions">
-              <button id="addThemeBtn" class="btn primary">
-                Add Theme
-              </button>
-              <button id="cancelEditBtn" class="btn" style="display: none">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Rules -->
-        <div class="card" id="rulesCard">
-          <div class="card-head">
-            <div class="icon">
-              <svg aria-hidden="true"><use href="#icon-calendar"></use></svg>
-              <span>Rules</span>
-            </div>
-            <button class="btn" id="addRuleBtn2" title="Add Rule">
-              <svg aria-hidden="true"><use href="#icon-plus"></use></svg>
-              Add
-            </button>
-          </div>
-
-          <div
-            id="rulesList"
-            class="list"
-            style="display: grid; gap: 12px"
-          ></div>
-        </div>
-
-        <div class="row">
-          <button class="btn primary" id="closePanel">Done</button>
+        <div class="simple-settings" id="settingsContent">
+          <!-- Content loaded dynamically based on which button was clicked -->
         </div>
       </section>
     </div>

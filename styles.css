@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700;800&display=swap');
+
 /*===== Reset & Base =====*/
 *,
 *::before,
@@ -24,10 +26,10 @@ body {
   --btn-radius: 0;
   --focus: 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
 
-  --count-font: ui-monospace, SFMono-Regular, Menlo, Consolas,
+  --count-font: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     "Liberation Mono", "DejaVu Sans Mono", monospace;
-  --ui-font: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
-    Cantarell, "Helvetica Neue", Arial, sans-serif;
+  --ui-font: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", "DejaVu Sans Mono", monospace;
 
   --barFrom: var(--accent);
   --barTo: var(--accent-2);
@@ -52,7 +54,7 @@ header,
 footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: var(--gap);
   padding: 16px clamp(16px, 4vw, 40px);
 }
@@ -70,6 +72,42 @@ footer {
   height: 28px;
   display: block;
 }
+
+/* Footer Settings (Monkeytype style) */
+.footer-settings {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.setting-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  font-family: var(--ui-font);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 4px;
+}
+.setting-btn:hover {
+  color: var(--fg);
+  background: color-mix(in oklab, var(--fg) 5%, transparent);
+}
+.setting-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.setting-btn span {
+  text-transform: lowercase;
+}
+
 .actions {
   display: flex;
   gap: 10px;
@@ -246,7 +284,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   opacity: 0.9;
 }
 
-/* Settings Panel */
+/* Settings Panel (Simplified Monkeytype Style) */
 .overlay {
   position: fixed;
   inset: 0;
@@ -273,9 +311,132 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   display: grid;
   gap: 18px;
 }
+.simple-panel {
+  width: min(600px, 92vw);
+  max-height: 70vh;
+  padding: 0;
+}
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid color-mix(in oklab, var(--fg) 8%, transparent);
+}
+.panel-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: lowercase;
+}
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+.close-btn:hover {
+  color: var(--fg);
+}
+.simple-settings {
+  padding: 24px;
+}
 .panel h3 {
   margin: 0 0 6px;
   font-size: 20px;
+}
+
+/* Simplified Settings Controls (Monkeytype style) */
+.simple-option {
+  padding: 12px 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--fg) 5%, transparent);
+}
+.simple-option:last-child {
+  border-bottom: none;
+}
+.simple-option-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  text-transform: lowercase;
+}
+.simple-option-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.simple-btn {
+  background: color-mix(in oklab, var(--fg) 5%, transparent);
+  border: none;
+  color: var(--muted);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--ui-font);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-transform: lowercase;
+}
+.simple-btn:hover {
+  background: color-mix(in oklab, var(--fg) 8%, transparent);
+  color: var(--fg);
+}
+.simple-btn.active {
+  background: var(--accent);
+  color: #0b0c0f;
+}
+
+/* Rules List (simplified) */
+.rules-list-simple {
+  display: grid;
+  gap: 12px;
+}
+.rule-item-simple {
+  background: color-mix(in oklab, var(--fg) 4%, transparent);
+  padding: 12px 16px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.rule-item-info {
+  flex: 1;
+}
+.rule-item-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.rule-item-details {
+  font-size: 12px;
+  color: var(--muted);
+}
+.rule-item-actions {
+  display: flex;
+  gap: 8px;
+}
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+.icon-btn:hover {
+  color: var(--fg);
 }
 
 .row {
