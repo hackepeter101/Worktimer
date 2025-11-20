@@ -1,0 +1,70 @@
+{
+  "themes": [
+    {
+      "id": "light",
+      "name": "Light",
+      "tokens": {
+        "--color-bg": "#f5f7fa",
+        "--color-surface": "#ffffff",
+        "--color-text": "#1a202c",
+        "--color-accent": "#3182ce",
+        "--color-muted": "#718096"
+      }
+    },
+    {
+      "id": "dark",
+      "name": "Dark",
+      "tokens": {
+        "--color-bg": "#0b0c0f",
+        "--color-surface": "#14161b",
+        "--color-text": "#e9eef4",
+        "--color-accent": "#6ea8fe",
+        "--color-muted": "#a7b0bf"
+      }
+    },
+    {
+      "id": "mono",
+      "name": "Mono",
+      "tokens": {
+        "--color-bg": "#1a1a1a",
+        "--color-surface": "#2d2d2d",
+        "--color-text": "#e0e0e0",
+        "--color-accent": "#ffffff",
+        "--color-muted": "#999999"
+      }
+    },
+    {
+      "id": "ocean",
+      "name": "Ocean",
+      "tokens": {
+        "--color-bg": "#0a1929",
+        "--color-surface": "#132f4c",
+        "--color-text": "#b2bac2",
+        "--color-accent": "#5090d3",
+        "--color-muted": "#7a8a9a"
+      }
+    },
+    {
+      "id": "forest",
+      "name": "Forest",
+      "tokens": {
+        "--color-bg": "#0d1f12",
+        "--color-surface": "#1a3620",
+        "--color-text": "#c7e8ca",
+        "--color-accent": "#52c969",
+        "--color-muted": "#7a9d7e"
+      }
+    },
+    {
+      "id": "warm",
+      "name": "Warm",
+      "tokens": {
+        "--color-bg": "#1f1410",
+        "--color-surface": "#332620",
+        "--color-text": "#f4e8dd",
+        "--color-accent": "#ff9a56",
+        "--color-muted": "#b89a82"
+      }
+    }
+  ]
+}
