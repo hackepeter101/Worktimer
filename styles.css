@@ -42,11 +42,12 @@ body {
   color: var(--fg);
   background: var(--bg);
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: 1fr auto;
   min-height: 100dvh;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background 0.3s ease, color 0.3s ease;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
@@ -348,7 +349,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   background: transparent;
   border: none;
   color: var(--muted);
-  font-size: 32px;
+  font-size: 28px;
   line-height: 1;
   cursor: pointer;
   padding: 0;
@@ -357,10 +358,13 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
+  transition: all 0.15s ease;
+  border-radius: 4px;
 }
 .close-btn:hover {
-  color: var(--fg);
+  color: var(--accent);
+  background: rgba(226, 183, 20, 0.1);
+  transform: rotate(90deg);
 }
 .simple-settings {
   padding: 24px;
@@ -500,14 +504,17 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   border: none;
   color: var(--muted);
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease, transform 0.15s ease;
+  border-radius: 4px;
 }
 .icon-btn:hover {
-  color: var(--fg);
+  color: var(--accent);
+  background: rgba(226, 183, 20, 0.1);
+  transform: scale(1.05);
 }
 
 .row {
@@ -632,6 +639,32 @@ button,
   }
   .btn:hover {
     transform: none;
+  }
+  .close-btn:hover {
+    transform: none;
+  }
+  .icon-btn:hover {
+    transform: none;
+  }
+}
+
+/* Subtle pulse animation for countdown */
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+.countdown-big {
+  animation: subtle-pulse 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown-big {
+    animation: none;
   }
 }
 
