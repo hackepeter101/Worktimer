@@ -1,0 +1,24 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path
+    d="M4 12a8 8 0 0 1 16 0"
+    stroke="url(#g1)"
+    stroke-width="2"
+    stroke-linecap="round"
+  ></path>
+  <path
+    d="M12 4v8l4 2"
+    stroke="url(#g2)"
+    stroke-width="2"
+    stroke-linecap="round"
+  ></path>
+  <defs>
+    <linearGradient id="g1" x1="4" y1="4" x2="20" y2="20">
+      <stop stop-color="var(--accent)" />
+      <stop offset="1" stop-color="var(--accent-2)" />
+    </linearGradient>
+    <linearGradient id="g2" x1="12" y1="4" x2="18" y2="14">
+      <stop stop-color="var(--accent)" />
+      <stop offset="1" stop-color="var(--accent-2)" />
+    </linearGradient>
+  </defs>
+</svg>

@@ -64,7 +64,8 @@ footer {
   letter-spacing: 0.2px;
   user-select: none;
 }
-.brand svg {
+.brand svg,
+.brand img {
   width: 28px;
   height: 28px;
   display: block;
@@ -257,7 +258,8 @@ footer .actions {
   background: color-mix(in oklab, var(--danger) 28%, transparent);
   color: #fff;
 }
-.btn svg {
+.btn svg,
+.btn img {
   width: 18px;
   height: 18px;
   display: block;
@@ -653,7 +655,8 @@ button,
     font-size: 14px;
   }
   
-  .brand svg {
+  .brand svg,
+  .brand img {
     width: 24px;
     height: 24px;
   }
@@ -664,7 +667,8 @@ button,
     min-height: 40px;
   }
   
-  .btn svg {
+  .btn svg,
+  .btn img {
     width: 16px;
     height: 16px;
   }

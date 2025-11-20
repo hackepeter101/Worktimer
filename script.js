@@ -858,10 +858,7 @@
           </div>
           <div class="col-2" style="display:flex;gap:8px;justify-content:flex-end;">
             <button type="button" class="btn icon del-break" title="Entfernen" aria-label="Pause entfernen">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
-                <path d="M4 7h16M9 7V5h6v2m-9 0 1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"
-                      stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+              <svg aria-hidden="true" width="18" height="18"><use href="#icon-trash"></use></svg>
             </button>
           </div>
         </div>
@@ -904,18 +901,13 @@
       card.innerHTML = `
           <div class="card-head">
             <div class="icon" style="display:inline-flex;align-items:center;gap:8px;">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
-                <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+              <svg aria-hidden="true" width="18" height="18"><use href="#icon-clock-simple"></use></svg>
               <span class="title">${escapeHtml(
                 rule.name || "Ohne Titel"
               )}</span>
             </div>
             <button class="btn danger btn-delete" title="Regel löschen" type="button">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
-                <path d="M4 7h16M9 7V5h6v2m-9 0 1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"
-                      stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+              <svg aria-hidden="true" width="18" height="18"><use href="#icon-trash"></use></svg>
               Löschen
             </button>
           </div>
@@ -956,9 +948,7 @@
                   ${breaksRows}
                   <div>
                     <button type="button" class="btn add-break">
-                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
-                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                      </svg>
+                      <svg aria-hidden="true" width="18" height="18"><use href="#icon-plus"></use></svg>
                       Pause hinzufügen
                     </button>
                   </div>
