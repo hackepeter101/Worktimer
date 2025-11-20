@@ -208,6 +208,85 @@
     return theme.bgImage || null;
   }
 
+  /**
+   * Calculate average brightness of an image
+   * Returns a value between 0 (dark) and 255 (bright)
+   */
+  function getImageBrightness(imageUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          
+          // Use smaller dimensions for faster processing
+          const maxDim = 50;
+          const scale = Math.min(maxDim / img.width, maxDim / img.height);
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          let totalBrightness = 0;
+          
+          // Calculate brightness using relative luminance formula
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            // Using perceived brightness formula
+            const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+            totalBrightness += brightness;
+          }
+          
+          const avgBrightness = totalBrightness / (data.length / 4);
+          resolve(avgBrightness);
+        } catch (error) {
+          console.warn("[Brightness] Error analyzing image:", error);
+          resolve(128); // Default to mid-brightness on error
+        }
+      };
+      
+      img.onerror = () => {
+        console.warn("[Brightness] Failed to load image for analysis");
+        resolve(128); // Default to mid-brightness on error
+      };
+      
+      img.src = imageUrl;
+    });
+  }
+
+  /**
+   * Adjust text colors based on background brightness
+   * @param {number} brightness - Average brightness (0-255)
+   */
+  function adjustTextColors(brightness) {
+    const root = document.documentElement;
+    
+    // Threshold for determining if background is light or dark
+    // Using 140 as threshold (slightly above middle to favor dark text)
+    const isLightBackground = brightness > 140;
+    
+    if (isLightBackground) {
+      // Dark text on light background
+      root.style.setProperty("--fg", "#0b0c0f");
+      root.style.setProperty("--muted", "#4a5568");
+      root.style.setProperty("--card", "rgba(255, 255, 255, 0.85)");
+      document.body.style.color = "#0b0c0f";
+    } else {
+      // Light text on dark background
+      root.style.setProperty("--fg", "#e9eef4");
+      root.style.setProperty("--muted", "#a7b0bf");
+      root.style.setProperty("--card", "#14161b");
+      document.body.style.color = "#e9eef4";
+    }
+  }
+
   // applyTheme (async wegen Bing)
   async function applyTheme(key = loadTheme(), now = new Date()) {
     const theme = key ? getThemeByKey(key) : null;
@@ -243,6 +322,16 @@
     body.style.backgroundSize = "cover";
     body.style.backgroundPosition = "center";
     body.style.backgroundRepeat = "no-repeat";
+    
+    // Auto-adjust text color based on background image brightness
+    if (url && (theme.source === "bing" || theme.bgDaily || theme.bgImage)) {
+      try {
+        const brightness = await getImageBrightness(url);
+        adjustTextColors(brightness);
+      } catch (error) {
+        console.warn("[Theme] Failed to adjust text colors:", error);
+      }
+    }
   }
 
   let dailyBgTimer = null;
