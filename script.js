@@ -92,9 +92,10 @@
       }
       
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js', {
-          scope: '/'
+        const registration = await navigator.serviceWorker.register('./sw.js', {
+          scope: './'
         });
+        console.log('Service worker registered successfully');
         return true;
       } catch (error) {
         console.error('Service worker registration failed:', error);
@@ -677,6 +678,12 @@
     overlay?.setAttribute("aria-hidden", "false");
   };
   const closeSettings = () => {
+    // Blur any focused element inside the overlay before hiding
+    const activeElement = document.activeElement;
+    if (activeElement && overlay?.contains(activeElement)) {
+      activeElement.blur();
+    }
+    
     overlay?.classList.remove("show");
     overlay?.setAttribute("aria-hidden", "true");
   };
@@ -1674,6 +1681,12 @@
   }
 
   function closeWelcomePopup() {
+    // Blur any focused element inside the overlay before hiding
+    const activeElement = document.activeElement;
+    if (activeElement && welcomeOverlay?.contains(activeElement)) {
+      activeElement.blur();
+    }
+    
     welcomeOverlay?.classList.remove("show");
     welcomeOverlay?.setAttribute("aria-hidden", "true");
     // Mark as shown so it doesn't appear again

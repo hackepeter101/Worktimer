@@ -73,6 +73,14 @@ function initThemeEditor() {
  * Initialize Pickr color pickers with custom theme styling
  */
 function initPickrColorPickers() {
+  // Check if Pickr library is loaded
+  if (typeof Pickr === 'undefined') {
+    console.warn('Pickr library not loaded. Color pickers will use basic HTML color inputs.');
+    // Pickr is not available, fall back to basic color inputs
+    // The text inputs will still work for color selection
+    return;
+  }
+  
   const colorFields = [
     { id: 'bgColor', textId: 'bgColorText', default: '#323437', label: 'Background' },
     { id: 'fgColor', textId: 'fgColorText', default: '#d1d0c5', label: 'Text' },
@@ -87,60 +95,65 @@ function initPickrColorPickers() {
     
     if (!container || !textInput) return;
     
-    // Create Pickr instance
-    const pickr = Pickr.create({
-      el: container,
-      theme: 'monolith',
-      default: field.default,
-      comparison: false,
-      swatches: [
-        '#323437', '#d1d0c5', '#e2b714', '#646669', // Default theme colors
-        '#ffffff', '#000000', // Basic
-        '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', // Modern palette
-        '#1e293b', '#334155', '#475569', '#64748b', '#94a3b8', '#cbd5e1'  // Slate palette
-      ],
-      components: {
-        preview: true,
-        opacity: false,
-        hue: true,
-        interaction: {
-          hex: true,
-          rgba: false,
-          hsla: false,
-          hsva: false,
-          cmyk: false,
-          input: true,
-          clear: false,
-          save: true
+    try {
+      // Create Pickr instance
+      const pickr = Pickr.create({
+        el: container,
+        theme: 'monolith',
+        default: field.default,
+        comparison: false,
+        swatches: [
+          '#323437', '#d1d0c5', '#e2b714', '#646669', // Default theme colors
+          '#ffffff', '#000000', // Basic
+          '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', // Modern palette
+          '#1e293b', '#334155', '#475569', '#64748b', '#94a3b8', '#cbd5e1'  // Slate palette
+        ],
+        components: {
+          preview: true,
+          opacity: false,
+          hue: true,
+          interaction: {
+            hex: true,
+            rgba: false,
+            hsla: false,
+            hsva: false,
+            cmyk: false,
+            input: true,
+            clear: false,
+            save: true
+          }
         }
-      }
-    });
-    
-    // Update text input when color changes
-    pickr.on('change', (color) => {
-      const hexColor = color.toHEXA().toString();
-      textInput.value = hexColor.toUpperCase();
-    });
-    
-    // Save color when user clicks save button in picker
-    pickr.on('save', (color) => {
-      if (color) {
+      });
+      
+      // Update text input when color changes
+      pickr.on('change', (color) => {
         const hexColor = color.toHEXA().toString();
         textInput.value = hexColor.toUpperCase();
-      }
-      pickr.hide();
-    });
-    
-    // Update picker when text input changes
-    textInput.addEventListener('input', (e) => {
-      const value = e.target.value;
-      if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-        pickr.setColor(value);
-      }
-    });
-    
-    // Store the instance
-    colorPickers[field.id] = pickr;
+      });
+      
+      // Save color when user clicks save button in picker
+      pickr.on('save', (color) => {
+        if (color) {
+          const hexColor = color.toHEXA().toString();
+          textInput.value = hexColor.toUpperCase();
+        }
+        pickr.hide();
+      });
+      
+      // Update picker when text input changes
+      textInput.addEventListener('input', (e) => {
+        const value = e.target.value;
+        if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+          pickr.setColor(value);
+        }
+      });
+      
+      // Store the instance
+      colorPickers[field.id] = pickr;
+    } catch (error) {
+      console.warn(`Failed to initialize Pickr for ${field.id}:`, error);
+      // Continue with basic text input functionality
+    }
   });
 }
 
@@ -169,6 +182,12 @@ function openThemeEditor() {
 function closeThemeEditor() {
   const overlay = document.getElementById('themeEditorOverlay');
   if (!overlay) return;
+  
+  // Blur any focused element inside the overlay before hiding
+  const activeElement = document.activeElement;
+  if (activeElement && overlay.contains(activeElement)) {
+    activeElement.blur();
+  }
   
   overlay.classList.remove('show');
   overlay.setAttribute('aria-hidden', 'true');
