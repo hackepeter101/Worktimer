@@ -29,6 +29,14 @@
   const escapeHtml = (s = "") =>
     s.replace(/[&<>"']/g, (c) => escapeMap[c]);
   const escapeAttr = (s = "") => escapeHtml(s).replace(/"/g, "&quot;");
+  
+  // Validate CSS color values to prevent XSS
+  const sanitizeColor = (color, fallback = '#000000') => {
+    if (!color) return fallback;
+    // Allow hex colors, rgb/rgba, hsl/hsla, and named colors
+    const colorPattern = /^(#[0-9A-Fa-f]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|[a-z]+)$/i;
+    return colorPattern.test(color.trim()) ? color.trim() : fallback;
+  };
 
   const parseHM = (hm) => {
     const m = /^(\d{1,2}):(\d{2})$/.exec((hm ?? "").trim());
@@ -710,11 +718,11 @@
       const isActive = theme.id === currentThemeId;
       const badge = theme.builtIn ? '<span class="theme-preview-badge">built-in</span>' : '';
       
-      // Get colors for preview
-      const bgColor = theme.variables?.['--bg'] || '#323437';
-      const accentColor = theme.variables?.['--accent'] || '#e2b714';
-      const accent2Color = theme.variables?.['--accent-2'] || accentColor;
-      const textColor = theme.variables?.['--fg'] || theme.variables?.['--text'] || '#d1d0c5';
+      // Get colors for preview (sanitized to prevent XSS)
+      const bgColor = sanitizeColor(theme.variables?.['--bg'], '#323437');
+      const accentColor = sanitizeColor(theme.variables?.['--accent'], '#e2b714');
+      const accent2Color = sanitizeColor(theme.variables?.['--accent-2'], accentColor);
+      const textColor = sanitizeColor(theme.variables?.['--fg'] || theme.variables?.['--text'], '#d1d0c5');
       
       return `
         <div class="theme-preview-card ${isActive ? 'active' : ''}" data-theme-id="${escapeAttr(theme.id)}">
@@ -761,6 +769,7 @@
     // Add event listener for theme editor button
     $("#openThemeEditor", settingsContent)?.addEventListener('click', () => {
       closeSettings();
+      // Small delay to allow settings panel to close before opening theme editor
       setTimeout(() => {
         document.getElementById('themeEditorBtn')?.click();
       }, 100);
@@ -940,6 +949,9 @@
     const el = $("#themeLabel");
     if (el && theme) el.textContent = theme.name.toLowerCase();
   }
+  
+  // Expose updateThemeLabel to global scope so it can be called from index.html
+  window.updateThemeLabel = updateThemeLabel;
   
   // Full rules editor (simplified inline form)
   function openFullRulesEditor(ruleId) {
@@ -1702,14 +1714,10 @@
     tick();
     setInterval(tick, 1000);
     
-    // Theme and image loading happens in background, non-blocking
-    applyTheme(loadTheme()).catch(() => {
-      // Silent error - app continues to work without images
-    });
-
+    // Theme is now handled by ThemeSystem in index.html
     // Update footer labels
     updateLayoutLabel();
-    updateThemeLabel();
+    // Theme label will be updated by ThemeSystem after it initializes
     
     if (!localStorage.getItem(LS_KEY_LAYOUT)) saveLayout("big-total");
 

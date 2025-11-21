@@ -273,6 +273,11 @@
         // Initialize the new theme system
         await window.ThemeSystem.initThemeSystem();
         
+        // Update theme label in footer after theme is loaded
+        if (typeof updateThemeLabel === 'function') {
+          updateThemeLabel();
+        }
+        
         // Initialize theme editor
         initThemeEditor();
       });
