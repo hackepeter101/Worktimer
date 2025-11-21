@@ -92,6 +92,8 @@
       }
       
       try {
+        // Use relative path to support deployment in subdirectories
+        // Absolute path ('/sw.js') only works when app is at root
         const registration = await navigator.serviceWorker.register('./sw.js', {
           scope: './'
         });
