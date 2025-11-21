@@ -130,16 +130,14 @@
           <span>notifications</span>
         </button>
         <!-- Theme Selector -->
-        <div class="theme-selector-wrapper">
-          <label for="themeSelector" class="theme-selector-label">Theme:</label>
-          <select id="themeSelector" class="theme-selector" title="Select theme">
-            <option value="">Loading...</option>
-          </select>
-          <button class="setting-btn" id="themeEditorBtn" title="Open Theme Editor">
-            <svg aria-hidden="true" width="16" height="16"><use href="#icon-sliders"></use></svg>
-            <span>editor</span>
-          </button>
-        </div>
+        <button class="setting-btn" id="themeBtn" title="Select theme">
+          <svg aria-hidden="true" width="16" height="16"><use href="#icon-sliders"></use></svg>
+          <span id="themeLabel">theme</span>
+        </button>
+        <button class="setting-btn" id="themeEditorBtn" title="Open Theme Editor" style="display: none;">
+          <svg aria-hidden="true" width="16" height="16"><use href="#icon-sliders"></use></svg>
+          <span>editor</span>
+        </button>
       </div>
     </footer>
 
@@ -275,8 +273,10 @@
         // Initialize the new theme system
         await window.ThemeSystem.initThemeSystem();
         
-        // Initialize theme selector UI
-        initThemeSelector();
+        // Update theme label in footer after theme is loaded
+        if (typeof updateThemeLabel === 'function') {
+          updateThemeLabel();
+        }
         
         // Initialize theme editor
         initThemeEditor();
