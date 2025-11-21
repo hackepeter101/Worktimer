@@ -8,53 +8,6 @@ let previewedTheme = null;
 let colorPickers = {}; // Store Pickr instances
 
 /**
- * Initialize theme selector dropdown
- */
-function initThemeSelector() {
-  const selector = document.getElementById('themeSelector');
-  if (!selector) {
-    console.error('Theme selector not found');
-    return;
-  }
-  
-  // Populate with all themes
-  updateThemeSelector();
-  
-  // Add change event listener
-  selector.addEventListener('change', (e) => {
-    const themeId = e.target.value;
-    if (themeId) {
-      window.ThemeSystem.applyTheme(themeId);
-      updateThemeList();
-    }
-  });
-}
-
-/**
- * Update theme selector dropdown with all available themes
- */
-function updateThemeSelector() {
-  const selector = document.getElementById('themeSelector');
-  if (!selector) return;
-  
-  const allThemes = window.ThemeSystem.getAllThemes();
-  const currentThemeId = window.ThemeSystem.getCurrentThemeId();
-  
-  // Clear and repopulate
-  selector.innerHTML = '';
-  
-  allThemes.forEach(theme => {
-    const option = document.createElement('option');
-    option.value = theme.id;
-    option.textContent = theme.name;
-    if (theme.id === currentThemeId) {
-      option.selected = true;
-    }
-    selector.appendChild(option);
-  });
-}
-
-/**
  * Initialize theme editor
  */
 function initThemeEditor() {
@@ -289,7 +242,6 @@ function updateThemeList() {
       if (!e.target.closest('.icon-btn')) {
         window.ThemeSystem.applyTheme(theme.id);
         updateThemeList();
-        updateThemeSelector();
       }
     });
     
@@ -348,7 +300,6 @@ function deleteTheme(themeId) {
   try {
     window.ThemeSystem.deleteLocalTheme(themeId);
     updateThemeList();
-    updateThemeSelector();
   } catch (error) {
     alert(error.message);
   }
@@ -394,7 +345,6 @@ function saveTheme() {
     
     // Update UI
     updateThemeList();
-    updateThemeSelector();
     
     // Reset form
     resetForm();

@@ -761,67 +761,97 @@ button,
   }
 }
 
-/* Theme Selector Styles */
-.theme-selector-wrapper {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0;
-  background: transparent;
-  border-radius: var(--btn-radius);
-  transition: all 0.15s ease;
+/* Theme Preview Cards */
+.theme-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
 }
 
-.theme-selector-label {
-  display: none; /* Hide the label for a cleaner look */
-}
-
-.theme-selector {
-  background: transparent;
-  color: var(--muted);
-  border: none;
+.theme-preview-card {
+  background: #3c3e42;
   border-radius: var(--btn-radius);
-  padding: 8px 32px 8px 14px;
-  font-family: var(--ui-font);
-  font-size: 14px;
-  font-weight: 500;
+  overflow: hidden;
   cursor: pointer;
-  outline: none;
   transition: all 0.15s ease;
-  min-width: 120px;
-  text-transform: lowercase;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23646669' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px;
+  border: 2px solid transparent;
 }
 
-.theme-selector:hover {
-  color: var(--accent);
-  background-color: rgba(226, 183, 20, 0.1);
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e2b714' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+.theme-preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: var(--muted);
 }
 
-.theme-selector:focus {
-  color: var(--accent);
-  background-color: rgba(226, 183, 20, 0.1);
-  box-shadow: var(--focus);
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e2b714' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+.theme-preview-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(226, 183, 20, 0.3);
 }
 
-/* Ensure native dropdown arrow is hidden in all browsers */
-.theme-selector::-ms-expand {
-  display: none;
+.theme-preview-colors {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
-.theme-selector option {
-  background: var(--card);
+.theme-preview-text {
+  font-size: 32px;
+  font-weight: 700;
+  font-family: var(--ui-font);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.theme-preview-info {
+  padding: 10px 12px;
+  background: #3c3e42;
+}
+
+.theme-preview-name {
+  font-size: 13px;
+  font-weight: 600;
   color: var(--fg);
-  padding: 8px;
-  text-transform: none;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theme-preview-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 6px;
+  background: rgba(226, 183, 20, 0.2);
+  color: var(--accent);
+  border-radius: 3px;
+  margin-left: 4px;
+  text-transform: lowercase;
+  vertical-align: middle;
+}
+
+@media (max-width: 640px) {
+  .theme-preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  
+  .theme-preview-colors {
+    height: 70px;
+  }
+  
+  .theme-preview-text {
+    font-size: 28px;
+  }
+  
+  .theme-preview-info {
+    padding: 8px 10px;
+  }
+  
+  .theme-preview-name {
+    font-size: 12px;
+  }
 }
 
 /* Welcome Panel Styles */

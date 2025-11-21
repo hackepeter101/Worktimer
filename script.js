@@ -702,32 +702,68 @@
   
   // Theme Settings
   $("#themeBtn")?.addEventListener("click", () => {
-    const current = loadTheme();
-    const themeBtns = themeStore.themes.map(t => {
-      const isActive = t.key === current;
-      return `<button class="simple-btn ${isActive ? 'active' : ''}" data-theme="${escapeAttr(t.key)}">${escapeHtml(t.name)}</button>`;
+    const allThemes = window.ThemeSystem?.getAllThemes() || [];
+    const currentThemeId = window.ThemeSystem?.getCurrentThemeId();
+    
+    // Create theme preview cards
+    const themeCards = allThemes.map(theme => {
+      const isActive = theme.id === currentThemeId;
+      const badge = theme.builtIn ? '<span class="theme-preview-badge">built-in</span>' : '';
+      
+      // Get colors for preview
+      const bgColor = theme.variables?.['--bg'] || '#323437';
+      const accentColor = theme.variables?.['--accent'] || '#e2b714';
+      const accent2Color = theme.variables?.['--accent-2'] || accentColor;
+      const textColor = theme.variables?.['--fg'] || theme.variables?.['--text'] || '#d1d0c5';
+      
+      return `
+        <div class="theme-preview-card ${isActive ? 'active' : ''}" data-theme-id="${escapeAttr(theme.id)}">
+          <div class="theme-preview-colors" style="background: linear-gradient(135deg, ${bgColor} 0%, ${bgColor} 60%, ${accentColor} 60%, ${accentColor} 80%, ${accent2Color} 80%);">
+            <div class="theme-preview-text" style="color: ${textColor};">Aa</div>
+          </div>
+          <div class="theme-preview-info">
+            <div class="theme-preview-name">${escapeHtml(theme.name)}${badge}</div>
+          </div>
+        </div>
+      `;
     }).join('');
     
     const content = `
       <div class="simple-option">
-        <div class="simple-option-label">theme</div>
-        <div class="simple-option-buttons">
-          ${themeBtns}
+        <div class="simple-option-label">select theme</div>
+        <div class="theme-preview-grid">
+          ${themeCards}
+        </div>
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(100, 102, 105, 0.15);">
+          <button class="simple-btn active" id="openThemeEditor">
+            <svg width="16" height="16"><use href="#icon-sliders"></use></svg>
+            create or edit themes
+          </button>
         </div>
       </div>
     `;
     openSettings(content);
     
-    // Add event listeners
-    $$('.simple-btn[data-theme]', settingsContent).forEach(btn => {
-      btn.addEventListener('click', () => {
-        const themeKey = btn.dataset.theme;
-        saveTheme(themeKey);
-        applyTheme(themeKey).catch(() => {});
-        updateThemeLabel();
-        $$('.simple-btn[data-theme]', settingsContent).forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    // Add event listeners for theme selection
+    $$('.theme-preview-card', settingsContent).forEach(card => {
+      card.addEventListener('click', () => {
+        const themeId = card.dataset.themeId;
+        if (window.ThemeSystem) {
+          window.ThemeSystem.applyTheme(themeId);
+          updateThemeLabel();
+          // Update active state
+          $$('.theme-preview-card', settingsContent).forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+        }
       });
+    });
+    
+    // Add event listener for theme editor button
+    $("#openThemeEditor", settingsContent)?.addEventListener('click', () => {
+      closeSettings();
+      setTimeout(() => {
+        document.getElementById('themeEditorBtn')?.click();
+      }, 100);
     });
   });
   
@@ -899,8 +935,8 @@
   }
   
   function updateThemeLabel() {
-    const current = loadTheme();
-    const theme = getThemeByKey(current);
+    const currentThemeId = window.ThemeSystem?.getCurrentThemeId();
+    const theme = window.ThemeSystem?.getThemeById(currentThemeId);
     const el = $("#themeLabel");
     if (el && theme) el.textContent = theme.name.toLowerCase();
   }

@@ -134,6 +134,10 @@
           <svg aria-hidden="true" width="16" height="16"><use href="#icon-sliders"></use></svg>
           <span id="themeLabel">theme</span>
         </button>
+        <button class="setting-btn" id="themeEditorBtn" title="Open Theme Editor" style="display: none;">
+          <svg aria-hidden="true" width="16" height="16"><use href="#icon-sliders"></use></svg>
+          <span>editor</span>
+        </button>
       </div>
     </footer>
 
@@ -268,9 +272,6 @@
       document.addEventListener('DOMContentLoaded', async () => {
         // Initialize the new theme system
         await window.ThemeSystem.initThemeSystem();
-        
-        // Initialize theme selector UI
-        initThemeSelector();
         
         // Initialize theme editor
         initThemeEditor();
