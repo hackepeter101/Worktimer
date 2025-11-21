@@ -10,6 +10,7 @@
 // LocalStorage keys
 const LS_SELECTED_THEME = 'worktimer:selectedTheme';
 const LS_LOCAL_THEMES = 'worktimer:localThemes';
+const LS_THEME_CACHE = 'worktimer:themeCache';
 
 // State
 let builtInThemes = [];
@@ -245,7 +246,7 @@ function applyTheme(themeOrId) {
   try {
     localStorage.setItem(LS_SELECTED_THEME, theme.id);
     // Cache the theme variables for instant loading on next page load
-    localStorage.setItem('worktimer:themeCache', JSON.stringify({
+    localStorage.setItem(LS_THEME_CACHE, JSON.stringify({
       id: theme.id,
       variables: theme.variables
     }));

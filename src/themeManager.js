@@ -69,12 +69,14 @@
       }
     }
     
-    // Also apply to body for immediate visual effect
-    if (variables['--bg']) {
-      document.body.style.backgroundColor = variables['--bg'];
-    }
-    if (variables['--fg'] || variables['--text']) {
-      document.body.style.color = variables['--fg'] || variables['--text'];
+    // Also apply to body for immediate visual effect (if body exists)
+    if (document.body) {
+      if (variables['--bg']) {
+        document.body.style.backgroundColor = variables['--bg'];
+      }
+      if (variables['--fg'] || variables['--text']) {
+        document.body.style.color = variables['--fg'] || variables['--text'];
+      }
     }
   }
   
