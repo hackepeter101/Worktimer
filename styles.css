@@ -975,7 +975,7 @@ button,
   width: 16px;
   height: 16px;
   border-radius: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 .theme-item-actions {
