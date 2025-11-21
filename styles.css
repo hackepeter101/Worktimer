@@ -369,6 +369,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 .simple-settings {
   padding: 24px;
+  overflow-y: auto;
+  max-height: calc(70vh - 80px);
 }
 .panel h3 {
   margin: 0 0 6px;
