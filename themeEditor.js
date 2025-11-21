@@ -74,10 +74,12 @@ function initThemeEditor() {
  */
 function initPickrColorPickers() {
   // Check if Pickr library is loaded
-  if (typeof Pickr === 'undefined') {
-    console.warn('Pickr library not loaded. Falling back to basic color inputs (manual hex entry).');
     // Pickr is not available, but the text inputs will still work for color selection
     // Users can manually enter hex color codes
+  // Check if Pickr is available (CDN may be blocked)
+  if (typeof Pickr === 'undefined') {
+    console.warn('Pickr color picker library not loaded. Color pickers will be disabled, but theme editing via text input is still available.');
+    console.warn('Pickr library not loaded. Falling back to basic color inputs (manual hex entry).');
     return;
   }
   
