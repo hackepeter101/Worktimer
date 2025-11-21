@@ -1,0 +1,310 @@
+/**
+ * Custom Pickr Color Picker Styling
+ * Designed to match the Worktimer dark Monkeytype-like theme
+ * Provides clean, minimalistic integration with the existing UI
+ */
+
+/* ===== Pickr Button Styling ===== */
+.color-picker-container {
+  width: 80px;
+  height: 48px;
+}
+
+.pcr-button {
+  width: 80px !important;
+  height: 48px !important;
+  border-radius: var(--btn-radius, 8px) !important;
+  border: 3px solid var(--card, #2c2e31) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.pcr-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  border-color: var(--accent, #e2b714) !important;
+}
+
+.pcr-button:focus {
+  outline: none !important;
+  box-shadow: var(--focus, 0 0 0 3px rgba(226, 183, 20, 0.3)) !important;
+  border-color: var(--accent, #e2b714) !important;
+}
+
+.pcr-button:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ===== Pickr App Container ===== */
+.pcr-app {
+  background: var(--card, #2c2e31) !important;
+  border: 2px solid var(--muted, #646669) !important;
+  border-radius: var(--btn-radius, 8px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(100, 102, 105, 0.1) !important;
+  font-family: var(--ui-font, 'Roboto Mono', monospace) !important;
+  padding: 12px !important;
+}
+
+.pcr-app * {
+  font-family: var(--ui-font, 'Roboto Mono', monospace) !important;
+}
+
+/* ===== Color Preview Area ===== */
+.pcr-app .pcr-selection {
+  margin-bottom: 12px;
+}
+
+.pcr-app .pcr-selection .pcr-color-preview {
+  border-radius: 6px !important;
+  border: 2px solid var(--muted, #646669) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.pcr-app .pcr-selection .pcr-color-preview .pcr-last-color {
+  border-radius: 6px 0 0 6px !important;
+}
+
+.pcr-app .pcr-selection .pcr-color-preview .pcr-current-color {
+  border-radius: 0 6px 6px 0 !important;
+}
+
+/* ===== Color Chooser Area ===== */
+.pcr-app .pcr-selection .pcr-color-chooser,
+.pcr-app .pcr-selection .pcr-color-opacity {
+  border-radius: 6px !important;
+  overflow: hidden;
+  border: 1px solid rgba(100, 102, 105, 0.3) !important;
+}
+
+.pcr-app .pcr-selection .pcr-color-chooser .pcr-slider,
+.pcr-app .pcr-selection .pcr-color-opacity .pcr-slider {
+  border-radius: 6px !important;
+}
+
+.pcr-app .pcr-selection .pcr-picker {
+  border: 3px solid var(--accent, #e2b714) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 0 3px rgba(226, 183, 20, 0.3), 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* ===== Hue Slider ===== */
+.pcr-app .pcr-selection .pcr-color-chooser,
+.pcr-app .pcr-selection .pcr-color-opacity {
+  margin-top: 8px;
+}
+
+/* ===== Input Fields ===== */
+.pcr-app .pcr-interaction {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(100, 102, 105, 0.2);
+}
+
+.pcr-app .pcr-interaction input {
+  background: var(--bg, #323437) !important;
+  color: var(--fg, #d1d0c5) !important;
+  border: 2px solid transparent !important;
+  border-radius: 6px !important;
+  font-family: var(--count-font, 'Roboto Mono', monospace) !important;
+  padding: 8px 10px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: all 0.15s ease !important;
+  outline: none !important;
+}
+
+.pcr-app .pcr-interaction input:hover {
+  border-color: var(--muted, #646669) !important;
+}
+
+.pcr-app .pcr-interaction input:focus {
+  border-color: var(--accent, #e2b714) !important;
+  background: var(--bg, #323437) !important;
+  box-shadow: 0 0 0 3px rgba(226, 183, 20, 0.15) !important;
+}
+
+.pcr-app .pcr-interaction .pcr-result {
+  font-family: var(--count-font, 'Roboto Mono', monospace) !important;
+  text-transform: uppercase;
+  color: var(--fg, #d1d0c5) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px;
+}
+
+/* ===== Save Button ===== */
+.pcr-app .pcr-interaction .pcr-save,
+.pcr-app .pcr-interaction .pcr-clear,
+.pcr-app .pcr-interaction .pcr-cancel {
+  background: var(--accent, #e2b714) !important;
+  color: var(--bg, #323437) !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  transition: all 0.15s ease !important;
+  border: none !important;
+  padding: 9px 18px !important;
+  cursor: pointer !important;
+  text-transform: lowercase;
+  font-family: var(--ui-font, 'Roboto Mono', monospace) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.pcr-app .pcr-interaction .pcr-save:hover,
+.pcr-app .pcr-interaction .pcr-clear:hover,
+.pcr-app .pcr-interaction .pcr-cancel:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  filter: brightness(1.1) !important;
+  background: var(--accent, #e2b714) !important;
+}
+
+.pcr-app .pcr-interaction .pcr-save:active,
+.pcr-app .pcr-interaction .pcr-clear:active,
+.pcr-app .pcr-interaction .pcr-cancel:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.pcr-app .pcr-interaction .pcr-clear,
+.pcr-app .pcr-interaction .pcr-cancel {
+  background: #3c3e42 !important;
+  color: var(--muted, #646669) !important;
+}
+
+.pcr-app .pcr-interaction .pcr-clear:hover,
+.pcr-app .pcr-interaction .pcr-cancel:hover {
+  background: #4a4c50 !important;
+  color: var(--fg, #d1d0c5) !important;
+}
+
+/* ===== Color Swatches ===== */
+.pcr-app .pcr-swatches {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(100, 102, 105, 0.2);
+}
+
+.pcr-app .pcr-swatches > button {
+  border-radius: 6px !important;
+  margin: 3px !important;
+  transition: all 0.15s ease !important;
+  border: 2px solid transparent !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.pcr-app .pcr-swatches > button:hover {
+  transform: scale(1.15) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+  border-color: var(--accent, #e2b714) !important;
+  z-index: 2;
+}
+
+.pcr-app .pcr-swatches > button:active {
+  transform: scale(1.05) !important;
+}
+
+/* Add subtle highlight to currently selected swatch - Note: This selector is based on */
+/* Pickr's aria-label pattern. If Pickr updates its aria-label format, this may need adjustment */
+.pcr-app .pcr-swatches > button[aria-label*="current"] {
+  border-color: var(--accent, #e2b714) !important;
+  box-shadow: 0 0 0 3px rgba(226, 183, 20, 0.3), 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ===== Type/Format Selector ===== */
+/* Hide the type/format selector (HEX/RGBA/HSLA/etc.) for a cleaner, simpler UI */
+/* Users can still input any valid color format in the text field, and Pickr will parse it */
+/* The color is always saved in HEX format which is the most common and compatible format */
+.pcr-app .pcr-interaction .pcr-type {
+  display: none !important;
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 640px) {
+  .pcr-app {
+    padding: 10px !important;
+  }
+
+  .pcr-app .pcr-interaction input {
+    font-size: 12px !important;
+    padding: 7px 9px !important;
+  }
+
+  .pcr-app .pcr-interaction .pcr-save,
+  .pcr-app .pcr-interaction .pcr-clear,
+  .pcr-app .pcr-interaction .pcr-cancel {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+  }
+
+  .pcr-app .pcr-swatches > button {
+    width: 18px !important;
+    height: 18px !important;
+    margin: 2px !important;
+  }
+}
+
+/* ===== Animations ===== */
+@keyframes pickr-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pcr-app {
+  animation: pickr-fade-in 0.2s ease-out !important;
+}
+
+/* ===== Reduced Motion Support ===== */
+@media (prefers-reduced-motion: reduce) {
+  .pcr-button:hover,
+  .pcr-app .pcr-interaction .pcr-save:hover,
+  .pcr-app .pcr-interaction .pcr-clear:hover,
+  .pcr-app .pcr-interaction .pcr-cancel:hover {
+    transform: none !important;
+  }
+
+  .pcr-app .pcr-swatches > button:hover {
+    transform: none !important;
+  }
+
+  .pcr-app {
+    animation: none !important;
+  }
+}
+
+/* ===== Dark Theme Enhancements ===== */
+.pcr-app .pcr-selection .pcr-color-palette {
+  border-radius: 6px !important;
+}
+
+.pcr-app .pcr-selection .pcr-color-chooser::before,
+.pcr-app .pcr-selection .pcr-color-opacity::before {
+  border-radius: 6px !important;
+}
+
+/* Style the interaction labels */
+.pcr-app .pcr-interaction > * {
+  margin-bottom: 8px;
+}
+
+.pcr-app .pcr-interaction > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Ensure proper contrast for better accessibility */
+.pcr-app .pcr-selection .pcr-color-chooser,
+.pcr-app .pcr-selection .pcr-color-opacity,
+.pcr-app .pcr-selection .pcr-color-preview {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
+}
