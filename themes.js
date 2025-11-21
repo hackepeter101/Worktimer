@@ -41,17 +41,26 @@ async function loadBuiltInThemes() {
     return builtInThemes;
   } catch (error) {
     console.error('Failed to load built-in themes:', error);
-    // Fallback themes
+    // Fallback theme - unique Worktimer default
     builtInThemes = [
       {
-        id: 'light',
-        name: 'Light',
+        id: 'worktimer',
+        name: 'Worktimer',
         builtIn: true,
         variables: {
-          '--bg': '#ffffff',
-          '--fg': '#1a1a1a',
-          '--accent': '#2563eb',
-          '--accent-2': '#1d4ed8'
+          '--bg': '#1a1d29',
+          '--fg': '#e8eaed',
+          '--text': '#e8eaed',
+          '--muted': '#9aa0a6',
+          '--card': '#252834',
+          '--accent': '#4fc3f7',
+          '--accent-2': '#29b6f6',
+          '--danger': '#ef5350',
+          '--color-bg': '#1a1d29',
+          '--color-text': '#e8eaed',
+          '--color-muted': '#9aa0a6',
+          '--color-surface': '#252834',
+          '--color-accent': '#4fc3f7'
         }
       }
     ];
@@ -235,6 +244,11 @@ function applyTheme(themeOrId) {
   // Persist to localStorage
   try {
     localStorage.setItem(LS_SELECTED_THEME, theme.id);
+    // Cache the theme variables for instant loading on next page load
+    localStorage.setItem('worktimer:themeCache', JSON.stringify({
+      id: theme.id,
+      variables: theme.variables
+    }));
   } catch (error) {
     console.warn('Failed to save theme selection:', error);
   }
