@@ -73,6 +73,12 @@ function initThemeEditor() {
  * Initialize Pickr color pickers with custom theme styling
  */
 function initPickrColorPickers() {
+  // Check if Pickr is available (CDN may be blocked)
+  if (typeof Pickr === 'undefined') {
+    console.warn('Pickr color picker library not loaded. Color pickers will be disabled, but theme editing via text input is still available.');
+    return;
+  }
+  
   const colorFields = [
     { id: 'bgColor', textId: 'bgColorText', default: '#323437', label: 'Background' },
     { id: 'fgColor', textId: 'fgColorText', default: '#d1d0c5', label: 'Text' },
