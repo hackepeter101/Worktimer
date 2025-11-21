@@ -1677,6 +1677,11 @@
     
     if (!localStorage.getItem(LS_KEY_LAYOUT)) saveLayout("big-total");
 
+    // Register service worker if notifications are enabled
+    if (NotificationSystem.isEnabled()) {
+      await NotificationSystem.registerServiceWorker();
+    }
+
     // Check if this is the first time user and show welcome popup
     await checkFirstTimeUser();
   })();
