@@ -979,26 +979,22 @@
     if (!ruleNameEl || !ruleStartEl || !ruleEndEl) return;
     
     // Save the current values
-    rule.name = ruleNameEl.value || rule.name;
-    rule.start = ruleStartEl.value || rule.start;
-    rule.end = ruleEndEl.value || rule.end;
+    rule.name = ruleNameEl.value;
+    rule.start = ruleStartEl.value;
+    rule.end = ruleEndEl.value;
     
     // Update days from active day toggles
     const activeDays = $$('.day-toggle.active', settingsContent).map(b => b.dataset.day);
-    if (activeDays.length > 0) {
-      rule.days = activeDays.join(',');
-    }
+    rule.days = activeDays.join(',');
     
     // Update breaks
     const breakElems = $$('.break-edit', settingsContent);
-    if (breakElems.length > 0) {
-      rule.breaks = breakElems.map(elem => {
-        const id = elem.dataset.id;
-        const start = elem.querySelector('.break-start')?.value;
-        const end = elem.querySelector('.break-end')?.value;
-        return { id, start, end };
-      });
-    }
+    rule.breaks = breakElems.map(elem => {
+      const id = elem.dataset.id;
+      const start = elem.querySelector('.break-start')?.value || '';
+      const end = elem.querySelector('.break-end')?.value || '';
+      return { id, start, end };
+    });
     
     saveRules(rules);
   }
