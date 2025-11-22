@@ -680,6 +680,9 @@
     overlay?.setAttribute("aria-hidden", "false");
   };
   const closeSettings = () => {
+    // Save any unsaved changes before closing
+    saveCurrentRuleFromEditor();
+    currentlyEditingRuleId = null; // Clear the tracking
     // Blur any focused element inside the overlay before hiding
     const activeElement = document.activeElement;
     if (activeElement && overlay?.contains(activeElement)) {
@@ -787,6 +790,10 @@
   
   // Rules Settings
   $("#rulesBtn")?.addEventListener("click", () => {
+    // Save any unsaved changes before switching views
+    saveCurrentRuleFromEditor();
+    currentlyEditingRuleId = null; // Clear the tracking
+    
     const rulesList = rules.map(r => {
       return `
         <div class="rule-item-simple" data-id="${escapeAttr(r.id)}">
@@ -962,10 +969,57 @@
   // Expose updateThemeLabel to global scope so it can be called from index.html
   window.updateThemeLabel = updateThemeLabel;
   
+  // Track currently editing rule
+  let currentlyEditingRuleId = null;
+  
+  // Save the current rule editor state
+  function saveCurrentRuleFromEditor() {
+    if (!currentlyEditingRuleId) return;
+    
+    const rule = rules.find(r => r.id === currentlyEditingRuleId);
+    if (!rule) return;
+    
+    // Check if we're in the rule editor by looking for the editor elements
+    const ruleNameEl = $("#ruleName", settingsContent);
+    const ruleStartEl = $("#ruleStart", settingsContent);
+    const ruleEndEl = $("#ruleEnd", settingsContent);
+    
+    // Only save if editor elements exist (we're in the editor view)
+    if (!ruleNameEl || !ruleStartEl || !ruleEndEl) return;
+    
+    // Save the current values
+    rule.name = ruleNameEl.value;
+    rule.start = ruleStartEl.value;
+    rule.end = ruleEndEl.value;
+    
+    // Update days from active day toggles
+    const activeDays = $$('.day-toggle.active', settingsContent).map(b => b.dataset.day);
+    rule.days = activeDays.join(',');
+    
+    // Update breaks
+    const breakElems = $$('.break-edit', settingsContent);
+    rule.breaks = breakElems.map(elem => {
+      const id = elem.dataset.id;
+      const start = elem.querySelector('.break-start')?.value || '';
+      const end = elem.querySelector('.break-end')?.value || '';
+      return { id, start, end };
+    });
+    
+    saveRules(rules);
+  }
+  
   // Full rules editor (simplified inline form)
   function openFullRulesEditor(ruleId) {
+    // Save any unsaved changes from the current editor before opening/refreshing
+    if (currentlyEditingRuleId) {
+      saveCurrentRuleFromEditor();
+    }
+    
     const rule = rules.find(r => r.id === ruleId);
     if (!rule) return;
+    
+    // Track the currently editing rule
+    currentlyEditingRuleId = ruleId;
     
     const breaksHtml = (rule.breaks || []).map(b => `
       <div class="break-edit" data-id="${escapeAttr(b.id)}">
@@ -1040,11 +1094,13 @@
       });
       
       saveRules(rules);
+      currentlyEditingRuleId = null; // Clear the tracking
       $("#rulesBtn")?.click(); // Go back to rules list
     });
     
     // Cancel button
     $("#cancelRule", settingsContent)?.addEventListener('click', () => {
+      currentlyEditingRuleId = null; // Clear the tracking
       $("#rulesBtn")?.click(); // Go back to rules list
     });
     
