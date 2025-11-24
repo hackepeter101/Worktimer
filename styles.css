@@ -13,18 +13,18 @@ body {
 }
 
 :root {
-  --bg: var(--color-bg, #323437);
-  --fg: var(--color-text, #d1d0c5);
-  --muted: var(--color-muted, #646669);
-  --card: var(--color-surface, #2c2e31);
-  --accent: var(--color-accent, #e2b714);
-  --accent-2: #e2b714;
-  --danger: #ca4754;
+  --bg: var(--color-bg, #1a1d29);
+  --fg: var(--color-text, #e8eaed);
+  --muted: var(--color-muted, #9aa0a6);
+  --card: var(--color-surface, #252834);
+  --accent: var(--color-accent, #4fc3f7);
+  --accent-2: #29b6f6;
+  --danger: #ef5350;
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   --radius: 8px;
   --gap: 16px;
   --btn-radius: 8px;
-  --focus: 0 0 0 3px rgba(226, 183, 20, 0.3);
+  --focus: 0 0 0 3px rgba(79, 195, 247, 0.3);
 
   --count-font: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     "Liberation Mono", "DejaVu Sans Mono", monospace;
