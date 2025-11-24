@@ -11,6 +11,13 @@
 const LS_SELECTED_THEME = 'worktimer:selectedTheme';
 const LS_LOCAL_THEMES = 'worktimer:localThemes';
 
+// Development mode flag
+const IS_DEV = false; // Set to true for development
+const log = (...args) => {
+  if (IS_DEV) console.log(...args);
+};
+const logError = (...args) => console.error(...args); // Always log errors
+
 // State
 let builtInThemes = [];
 let localThemes = {};
@@ -37,10 +44,10 @@ async function loadBuiltInThemes() {
       builtIn: true
     }));
     
-    console.log(`Loaded ${builtInThemes.length} built-in themes`);
+    log(`Loaded ${builtInThemes.length} built-in themes`);
     return builtInThemes;
   } catch (error) {
-    console.error('Failed to load built-in themes:', error);
+    logError('Failed to load built-in themes:', error);
     // Fallback theme - unique Worktimer default
     builtInThemes = [
       {
@@ -84,10 +91,10 @@ function loadLocalThemes() {
   try {
     const stored = localStorage.getItem(LS_LOCAL_THEMES);
     localThemes = stored ? JSON.parse(stored) : {};
-    console.log(`Loaded ${Object.keys(localThemes).length} local themes`);
+    log(`Loaded ${Object.keys(localThemes).length} local themes`);
     return localThemes;
   } catch (error) {
-    console.warn('Failed to load local themes:', error);
+    logError('Failed to load local themes:', error);
     localThemes = {};
     return {};
   }
@@ -154,9 +161,9 @@ function saveLocalTheme(name, theme) {
   // Persist to localStorage
   try {
     localStorage.setItem(LS_LOCAL_THEMES, JSON.stringify(localThemes));
-    console.log(`Saved local theme: ${name} (${id})`);
+    log(`Saved local theme: ${name} (${id})`);
   } catch (error) {
-    console.error('Failed to save local theme:', error);
+    logError('Failed to save local theme:', error);
     throw error;
   }
   
@@ -183,7 +190,7 @@ function deleteLocalTheme(themeId) {
   // Persist to localStorage
   try {
     localStorage.setItem(LS_LOCAL_THEMES, JSON.stringify(localThemes));
-    console.log(`Deleted local theme: ${themeId}`);
+    log(`Deleted local theme: ${themeId}`);
     
     // If this was the current theme, switch to first available
     if (currentThemeId === themeId) {
@@ -193,7 +200,7 @@ function deleteLocalTheme(themeId) {
       }
     }
   } catch (error) {
-    console.error('Failed to delete local theme:', error);
+    logError('Failed to delete local theme:', error);
     return false;
   }
   
@@ -212,7 +219,7 @@ function applyTheme(themeOrId) {
   if (typeof themeOrId === 'string') {
     theme = getThemeById(themeOrId);
     if (!theme) {
-      console.warn(`Theme '${themeOrId}' not found`);
+      logError(`Theme '${themeOrId}' not found`);
       return false;
     }
   } else {
@@ -250,10 +257,10 @@ function applyTheme(themeOrId) {
       variables: theme.variables
     }));
   } catch (error) {
-    console.warn('Failed to save theme selection:', error);
+    logError('Failed to save theme selection:', error);
   }
   
-  console.log(`Applied theme: ${theme.name} (${theme.id})`);
+  log(`Applied theme: ${theme.name} (${theme.id})`);
   return true;
 }
 
@@ -284,7 +291,7 @@ async function initThemeSystem() {
       themeToApply = getThemeById(savedThemeId);
     }
   } catch (error) {
-    console.warn('Failed to load saved theme:', error);
+    logError('Failed to load saved theme:', error);
   }
   
   // Fallback to first built-in theme

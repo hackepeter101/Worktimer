@@ -1,16 +1,37 @@
 (() => {
   "use strict";
 
-  /* ===== Shortcuts ===== */
+  /* ===== Development/Debug Mode ===== */
+  const IS_DEV = false; // Set to true for development
+  const log = (...args) => {
+    if (IS_DEV) console.log(...args);
+  };
+  const logError = (...args) => console.error(...args); // Always log errors
+  
+  /* ===== Utility Functions ===== */
+  // UUID generation with fallback for older browsers
+  const generateUUID = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback for older browsers
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
   const $ = (s, p = document) => p.querySelector(s);
   const $$ = (s, p = document) => Array.from(p.querySelectorAll(s));
 
   /* ===== LocalStorage Keys ===== */
   const LS_KEY_RULES = "workday.rules.v1";
   const LS_KEY_LAYOUT = "workday.layout.v1"; // 'big-total' | 'big-break'
+  const LS_KEY_NOTIFICATIONS = "workday.notifications.v1";
+  
+  // Legacy theme keys - kept for backwards compatibility
   const THEME_STORE_KEY = "workday.themeStore.v2";
   const LS_KEY_THEME = "workday.theme.v2";
-  const LS_KEY_NOTIFICATIONS = "workday.notifications.v1";
 
   /* ===== Days ===== */
   const dayAbbr = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
@@ -28,22 +49,45 @@
   };
   const escapeHtml = (s = "") =>
     s.replace(/[&<>"']/g, (c) => escapeMap[c]);
-  const escapeAttr = (s = "") => escapeHtml(s).replace(/"/g, "&quot;");
+
   
   // Validate CSS color values to prevent XSS
   const sanitizeColor = (color, fallback = '#000000') => {
-    if (!color) return fallback;
-    // Allow hex colors, rgb/rgba, hsl/hsla, and named colors
-    const colorPattern = /^(#[0-9A-Fa-f]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|[a-z]+)$/i;
-    return colorPattern.test(color.trim()) ? color.trim() : fallback;
+    if (!color || typeof color !== 'string') return fallback;
+    const trimmed = color.trim();
+    
+    // Strict validation for hex colors (most common)
+    if (/^#[0-9A-Fa-f]{3}$|^#[0-9A-Fa-f]{6}$|^#[0-9A-Fa-f]{8}$/.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // Strict validation for rgb/rgba
+    if (/^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$/.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // Strict validation for hsl/hsla
+    if (/^hsla?\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*(,\s*[\d.]+\s*)?\)$/.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // Allow only safe named colors (whitelist)
+    const safeNamedColors = ['transparent', 'black', 'white', 'red', 'green', 'blue', 
+                             'yellow', 'orange', 'purple', 'pink', 'gray', 'grey'];
+    if (safeNamedColors.includes(trimmed.toLowerCase())) {
+      return trimmed.toLowerCase();
+    }
+    
+    return fallback;
   };
 
   const parseHM = (hm) => {
-    const m = /^(\d{1,2}):(\d{2})$/.exec((hm ?? "").trim());
+    if (!hm || typeof hm !== 'string') return null;
+    const m = /^(\d{1,2}):(\d{2})$/.exec(hm.trim());
     if (!m) return null;
-    const h = +m[1],
-      mi = +m[2];
-    if (h < 0 || h > 23 || mi < 0 || mi > 59) return null;
+    const h = parseInt(m[1], 10);
+    const mi = parseInt(m[2], 10);
+    if (h < 0 || h > 23 || mi < 0 || mi > 59 || isNaN(h) || isNaN(mi)) return null;
     return { h, mi };
   };
   const midnightOf = (d) =>
@@ -54,11 +98,25 @@
     localStorage.getItem(LS_KEY_LAYOUT) || "big-total";
   const saveLayout = (l) => localStorage.setItem(LS_KEY_LAYOUT, l);
 
+  /* ===== Time Constants ===== */
+  const MS_PER_SECOND = 1000;
+  const MS_PER_MINUTE = 60 * MS_PER_SECOND;
+  const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+  
+  /* ===== UI Update Constants ===== */
+  const TICK_INTERVAL_MS = 1000; // Update UI every second
+  const FOCUS_DELAY_MS = 100; // Delay before focusing elements
+  const SCROLL_DELAY_MS = 100; // Delay before scrolling to element
+  
+  /* ===== Notification System Constants ===== */
+  const NOTIFICATION_COOLDOWN_MS = 60000; // 1 minute cooldown between notifications
+  const MAX_SCHEDULED_NOTIFICATIONS = 10; // Maximum number of scheduled notifications to track
+  const NOTIFICATION_REMINDER_WINDOW_MS = 30000; // 30-second window to catch reminder time
+  
   /* ===== Notification System ===== */
   const NotificationSystem = {
     _settings: null,
     _lastNotificationTime: 0,
-    _notificationCooldown: 60000, // 1 minute cooldown between notifications
     _scheduledNotifications: new Set(),
 
     loadSettings() {
@@ -92,15 +150,15 @@
       }
       
       try {
-        // Use relative path to support deployment in subdirectories
-        // Absolute path ('/sw.js') only works when app is at root
+        // Use relative path with proper scope to prevent path traversal
+        // Scope is restricted to current directory
         const registration = await navigator.serviceWorker.register('./sw.js', {
           scope: './'
         });
-        console.log('Service worker registered successfully');
+        log('Service worker registered successfully');
         return true;
       } catch (error) {
-        console.error('Service worker registration failed:', error);
+        logError('Service worker registration failed:', error);
         return false;
       }
     },
@@ -146,7 +204,7 @@
 
       // Cooldown check to prevent spam
       const now = Date.now();
-      if (now - this._lastNotificationTime < this._notificationCooldown) {
+      if (now - this._lastNotificationTime < NOTIFICATION_COOLDOWN_MS) {
         return;
       }
       this._lastNotificationTime = now;
@@ -162,7 +220,7 @@
           ...options
         });
       } catch (error) {
-        console.error('Failed to show notification:', error);
+        logError('Failed to show notification:', error);
       }
     },
 
@@ -181,11 +239,10 @@
       if (!nextBreak) return;
 
       const timeToBreak = nextBreak.start - now;
-      const reminderMs = settings.reminderMinutes * 60 * 1000;
+      const reminderMs = settings.reminderMinutes * MS_PER_MINUTE;
       
-      // Show notification if we're within the reminder window (e.g., 5 minutes before break)
-      // Allow a 30-second window to catch the reminder time
-      if (timeToBreak <= reminderMs && timeToBreak > (reminderMs - 30000)) {
+      // Show notification if we're within the reminder window
+      if (timeToBreak <= reminderMs && timeToBreak > (reminderMs - NOTIFICATION_REMINDER_WINDOW_MS)) {
         const breakKey = `${nextBreak.start.getTime()}`;
         
         // Prevent duplicate notifications for the same break
@@ -193,13 +250,13 @@
         this._scheduledNotifications.add(breakKey);
         
         // Clean up old scheduled notifications
-        if (this._scheduledNotifications.size > 10) {
+        if (this._scheduledNotifications.size > MAX_SCHEDULED_NOTIFICATIONS) {
           const oldest = Array.from(this._scheduledNotifications)[0];
           this._scheduledNotifications.delete(oldest);
         }
 
         const breakTime = toHM(nextBreak.start);
-        const minutesUntil = Math.ceil(timeToBreak / 60000);
+        const minutesUntil = Math.ceil(timeToBreak / MS_PER_MINUTE);
         
         this.showNotification('Break Reminder', {
           body: `Your break starts in ${minutesUntil} minute${minutesUntil !== 1 ? 's' : ''} at ${breakTime}`,
@@ -216,7 +273,9 @@
     }
   };
 
-  /* ===== THEME SYSTEM v2 (no presets, per-theme Bing, edit) ===== */
+  /* ===== THEME SYSTEM v2 (legacy - replaced by ThemeSystem in themes.js) ===== */
+  // Note: This legacy code is kept for backwards compatibility with old localStorage data
+  // The new theme system is in themes.js and is preferred
   function loadThemeStore() {
     try {
       return (
@@ -384,7 +443,11 @@
   }
   function updateThemeSelection() {
     const current = loadTheme();
-    $$(".theme-chip", themeGrid).forEach((chip) => {
+    const chips = $$(".theme-chip", themeGrid);
+    if (chips.length === 0) return;
+    
+    chips.forEach((chip) => {
+      if (!chip.dataset) return;
       const sel = chip.dataset.theme === current;
       chip.dataset.selected = sel ? "true" : "false";
       chip.setAttribute("aria-pressed", sel ? "true" : "false");
@@ -398,7 +461,7 @@
       .replace(/[^a-z0-9-_]/g, "");
     const unique = themeStore.themes.some((t) => t.key === base);
     const key = unique
-      ? `${base}-${crypto.randomUUID().slice(0, 6)}`
+      ? `${base}-${generateUUID().slice(0, 6)}`
       : base;
 
     let bgImages = [];
@@ -730,7 +793,7 @@
       const isActive = theme.id === currentThemeId;
       const badge = theme.builtIn ? '<span class="theme-preview-badge">built-in</span>' : '';
       
-      // Get colors for preview (sanitized to prevent XSS)
+      // Sanitize colors to prevent XSS injection
       const bgColor = sanitizeColor(theme.variables?.['--bg'], '#323437');
       const accentColor = sanitizeColor(theme.variables?.['--accent'], '#e2b714');
       const accent2Color = sanitizeColor(theme.variables?.['--accent-2'], accentColor);
@@ -782,9 +845,10 @@
     $("#openThemeEditor", settingsContent)?.addEventListener('click', () => {
       closeSettings();
       // Small delay to allow settings panel to close before opening theme editor
+      const MODAL_TRANSITION_DELAY = 100;
       setTimeout(() => {
         document.getElementById('themeEditorBtn')?.click();
-      }, 100);
+      }, MODAL_TRANSITION_DELAY);
     });
   });
   
@@ -846,7 +910,7 @@
     // Add rule button
     $("#addRuleSimple", settingsContent)?.addEventListener('click', () => {
       const newRule = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         name: "New Rule",
         days: "Mo,Di,Mi,Do,Fr",
         start: "09:00",
@@ -956,14 +1020,20 @@
     const layout = loadLayout();
     const label = layout === 'big-total' ? 'total' : 'break';
     const el = $("#layoutLabel");
-    if (el) el.textContent = label;
+    if (el) {
+      el.textContent = label;
+    }
   }
   
   function updateThemeLabel() {
     const currentThemeId = window.ThemeSystem?.getCurrentThemeId();
+    if (!currentThemeId) return;
+    
     const theme = window.ThemeSystem?.getThemeById(currentThemeId);
     const el = $("#themeLabel");
-    if (el && theme) el.textContent = theme.name.toLowerCase();
+    if (el && theme && theme.name) {
+      el.textContent = theme.name.toLowerCase();
+    }
   }
   
   // Expose updateThemeLabel to global scope so it can be called from index.html
@@ -1115,7 +1185,7 @@
     
     // Add break button
     $("#addBreak", settingsContent)?.addEventListener('click', () => {
-      const newBreak = { id: crypto.randomUUID(), start: "12:30", end: "13:00" };
+      const newBreak = { id: generateUUID(), start: "12:30", end: "13:00" };
       rule.breaks = rule.breaks || [];
       rule.breaks.push(newBreak);
       openFullRulesEditor(ruleId); // Refresh the editor
@@ -1134,12 +1204,12 @@
   /* ===== Rules (load/save/default) ===== */
   const defaultRules = [
     {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       name: "Default",
       days: "Mo,Di,Mi,Do,Fr",
       start: "09:00",
       end: "17:00",
-      breaks: [{ id: crypto.randomUUID(), start: "12:30", end: "13:00" }],
+      breaks: [{ id: generateUUID(), start: "12:30", end: "13:00" }],
     },
   ];
   function loadRules() {
@@ -1420,7 +1490,7 @@
 
       // Breaks
       $(".add-break", card)?.addEventListener("click", () => {
-        const id = crypto.randomUUID();
+        const id = generateUUID();
         rule.breaks = rule.breaks || [];
         rule.breaks.push({ id, start: "12:30", end: "13:00" });
         saveRules(rules);
@@ -1457,7 +1527,7 @@
   // Add Rule (UI-Button)
   function addRule() {
     const newRule = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       name: "Neue Regel",
       days: "Mo,Di,Mi,Do,Fr",
       start: "09:00",
@@ -1474,7 +1544,7 @@
       );
       card?.scrollIntoView({ behavior: "smooth", block: "center" });
       card?.querySelector(".inp-name")?.focus();
-    }, 100);
+    }, SCROLL_DELAY_MS);
   }
   $("#addRuleBtn2")?.addEventListener("click", addRule);
 
@@ -1487,6 +1557,18 @@
   const progressBar = $("#progressBar");
   const progressStart = $("#progressStart");
   const progressEnd = $("#progressEnd");
+  
+  // Cache for DOM query results to avoid repeated lookups
+  const domCache = {
+    countdownBig,
+    countdownSmall,
+    labelBig,
+    labelSmall,
+    progressEl,
+    progressBar,
+    progressStart,
+    progressEnd
+  };
 
   const normalizeDays = (str) =>
     (str || "")
@@ -1587,7 +1669,7 @@
   }
 
   function formatDuration(ms) {
-    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const totalSec = Math.max(0, Math.floor(ms / MS_PER_SECOND));
     const h = Math.floor(totalSec / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
@@ -1637,6 +1719,10 @@
         st.rule.name || "Work"
       })`;
 
+      // Update UI using cached DOM elements
+      const { countdownBig, countdownSmall, labelBig, labelSmall, 
+              progressBar, progressEl, progressStart, progressEnd } = domCache;
+
       if (layout === "big-total") {
         if (countdownBig)
           countdownBig.textContent = formatDuration(totalRemain);
@@ -1659,27 +1745,33 @@
       const pct = Math.max(0, Math.min(100, (done / total) * 100));
 
       if (progressBar) progressBar.style.width = pct.toFixed(2) + "%";
-      progressEl?.setAttribute("aria-valuenow", pct.toFixed(0));
+      if (progressEl) progressEl.setAttribute("aria-valuenow", pct.toFixed(0));
       if (progressStart) progressStart.textContent = toHM(st.windowStart);
       if (progressEnd) progressEnd.textContent = toHM(st.windowEnd);
 
       // break style
-      progressEl?.classList.toggle("is-break", st.mode === "break");
-      progressBar?.classList.toggle("is-break", st.mode === "break");
+      const isBreak = st.mode === "break";
+      if (progressEl) progressEl.classList.toggle("is-break", isBreak);
+      if (progressBar) progressBar.classList.toggle("is-break", isBreak);
       
       // Check for break reminders
       NotificationSystem.checkBreakReminder(st, now);
     } else {
+      const { countdownBig, countdownSmall, labelBig, labelSmall, 
+              progressBar, progressEl, progressStart, progressEnd } = domCache;
+              
       if (countdownBig) countdownBig.textContent = "–:–";
       if (labelBig) labelBig.textContent = "Keine aktive/kommende Regel";
       if (countdownSmall) countdownSmall.textContent = "–:–";
       if (labelSmall) labelSmall.textContent = "—";
       if (progressBar) progressBar.style.width = "0%";
-      progressEl?.setAttribute("aria-valuenow", "0");
+      if (progressEl) {
+        progressEl.setAttribute("aria-valuenow", "0");
+        progressEl.classList.remove("is-break");
+      }
       if (progressStart) progressStart.textContent = "–:–";
       if (progressEnd) progressEnd.textContent = "–:–";
-      progressEl?.classList.remove("is-break");
-      progressBar?.classList.remove("is-break");
+      if (progressBar) progressBar.classList.remove("is-break");
     }
 
     const pn = $("#progressNow");
@@ -1716,7 +1808,7 @@
       const markdown = await response.text();
       
       // Parse markdown using local parser
-      if (window.markdownParser) {
+      if (window.markdownParser && typeof window.markdownParser.parse === 'function') {
         const html = window.markdownParser.parse(markdown);
         return html;
       } else {
@@ -1724,7 +1816,7 @@
         return `<pre>${escapeHtml(markdown)}</pre>`;
       }
     } catch (error) {
-      console.error('Failed to load welcome content:', error);
+      logError('Failed to load welcome content:', error);
       return `
         <h1>Welcome to Workday Countdown! 🎉</h1>
         <p>Thank you for using Workday Countdown - your personal work timer assistant.</p>
@@ -1783,7 +1875,7 @@
   (async () => {
     // Start timer immediately - don't wait for theme/images
     tick();
-    setInterval(tick, 1000);
+    setInterval(tick, TICK_INTERVAL_MS);
     
     // Theme is now handled by ThemeSystem in index.html
     // Update footer labels
