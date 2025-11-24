@@ -77,6 +77,16 @@
           stroke-linejoin="round"
         />
       </symbol>
+      <symbol id="icon-clock-simple" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+        <path
+          d="M12 7v5l3 3"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
     </svg>
 
     <header>
@@ -86,16 +96,16 @@
       </div>
     </header>
 
-    <main class="center">
+    <main class="center" role="main" aria-label="Countdown timer">
       <div class="stack">
         <!-- Dual countdowns -->
-        <div id="countdownBig" class="countdown-big">–:–</div>
-        <div id="labelBig" class="subtitle">…</div>
+        <div id="countdownBig" class="countdown-big" role="timer" aria-live="polite">–:–</div>
+        <div id="labelBig" class="subtitle" aria-live="polite">…</div>
 
-        <div id="countdownSmall" class="countdown-small">–:–</div>
-        <div id="labelSmall" class="subtitle">…</div>
+        <div id="countdownSmall" class="countdown-small" role="timer" aria-live="polite">–:–</div>
+        <div id="labelSmall" class="subtitle" aria-live="polite">…</div>
 
-        <div class="progress-wrap" aria-hidden="false">
+        <div class="progress-wrap" aria-label="Work progress">
           <div
             class="progress"
             id="progress"
@@ -103,38 +113,39 @@
             aria-valuemin="0"
             aria-valuemax="100"
             aria-valuenow="0"
+            aria-label="Work day progress"
           >
             <div class="bar" id="progressBar"></div>
           </div>
-          <div class="progress-meta">
-            <span id="progressStart">–:–</span>
-            <span id="progressNow"></span>
-            <span id="progressEnd">–:–</span>
+          <div class="progress-meta" aria-label="Time range">
+            <span id="progressStart" aria-label="Start time">–:–</span>
+            <span id="progressNow" aria-label="Current time"></span>
+            <span id="progressEnd" aria-label="End time">–:–</span>
           </div>
         </div>
       </div>
     </main>
 
-    <footer>
-      <div class="footer-settings">
-        <button class="setting-btn" id="layoutBtn" title="Toggle display mode">
+    <footer role="contentinfo">
+      <div class="footer-settings" role="navigation" aria-label="Settings">
+        <button class="setting-btn" id="layoutBtn" title="Toggle display mode" aria-label="Toggle display mode">
           <svg aria-hidden="true" width="16" height="16"><use href="#icon-grid"></use></svg>
           <span id="layoutLabel">total</span>
         </button>
-        <button class="setting-btn" id="rulesBtn" title="Manage rules">
+        <button class="setting-btn" id="rulesBtn" title="Manage rules" aria-label="Manage work rules">
           <svg aria-hidden="true" width="16" height="16"><use href="#icon-calendar"></use></svg>
           <span>rules</span>
         </button>
-        <button class="setting-btn" id="notificationsBtn" title="Notification settings">
+        <button class="setting-btn" id="notificationsBtn" title="Notification settings" aria-label="Configure notifications">
           <svg aria-hidden="true" width="16" height="16"><use href="#icon-bell"></use></svg>
           <span>notifications</span>
         </button>
         <!-- Theme Selector -->
-        <button class="setting-btn" id="themeBtn" title="Select theme">
+        <button class="setting-btn" id="themeBtn" title="Select theme" aria-label="Select color theme">
           <svg aria-hidden="true" width="16" height="16"><use href="#icon-sliders"></use></svg>
           <span id="themeLabel">theme</span>
         </button>
-        <button class="setting-btn" id="themeEditorBtn" title="Open Theme Editor" style="display: none;">
+        <button class="setting-btn" id="themeEditorBtn" title="Open Theme Editor" aria-label="Open theme editor" style="display: none;">
           <svg aria-hidden="true" width="16" height="16"><use href="#icon-sliders"></use></svg>
           <span>editor</span>
         </button>

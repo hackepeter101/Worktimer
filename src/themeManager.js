@@ -50,9 +50,16 @@
       applyDefaultTheme();
       
     } catch (error) {
-      console.warn('Failed to apply immediate theme:', error);
+      logError('Failed to apply immediate theme:', error);
       applyDefaultTheme();
     }
+  }
+  
+  /**
+   * Log error - using console.error directly since this runs before main app
+   */
+  function logError(message, error) {
+    console.error(message, error);
   }
   
   /**

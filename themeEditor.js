@@ -3,6 +3,13 @@
  * Manages the theme editor modal and user interactions
  */
 
+// Development mode flag
+const IS_DEV_EDITOR = false; // Set to true for development
+const logEditor = (...args) => {
+  if (IS_DEV_EDITOR) console.log(...args);
+};
+const logEditorError = (...args) => console.error(...args); // Always log errors
+
 let editingThemeId = null;
 let previewedTheme = null;
 let colorPickers = {}; // Store Pickr instances
@@ -19,7 +26,7 @@ function initThemeEditor() {
   const cancelBtn = document.getElementById('cancelThemeBtn');
   
   if (!editorBtn || !overlay) {
-    console.error('Theme editor elements not found');
+    logEditorError('Theme editor elements not found');
     return;
   }
   
@@ -73,13 +80,9 @@ function initThemeEditor() {
  * Initialize Pickr color pickers with custom theme styling
  */
 function initPickrColorPickers() {
-  // Check if Pickr library is loaded
-    // Pickr is not available, but the text inputs will still work for color selection
-    // Users can manually enter hex color codes
   // Check if Pickr is available (CDN may be blocked)
   if (typeof Pickr === 'undefined') {
-    console.warn('Pickr color picker library not loaded. Color pickers will be disabled, but theme editing via text input is still available.');
-    console.warn('Pickr library not loaded. Falling back to basic color inputs (manual hex entry).');
+    logEditor('Pickr library not loaded. Falling back to basic color inputs (manual hex entry).');
     return;
   }
   
@@ -153,7 +156,7 @@ function initPickrColorPickers() {
       // Store the instance
       colorPickers[field.id] = pickr;
     } catch (error) {
-      console.warn(`Failed to initialize Pickr for ${field.id}:`, error);
+      logEditorError(`Failed to initialize Pickr for ${field.id}:`, error);
       // Continue with basic text input functionality
     }
   });
@@ -373,8 +376,8 @@ function saveTheme() {
     previewedTheme = null;
     updateFormTitle();
     
-    // Show success message (optional)
-    console.log(`Theme "${themeData.name}" saved successfully!`);
+    // Show success message
+    logEditor(`Theme "${themeData.name}" saved successfully!`);
     
   } catch (error) {
     alert(error.message);
