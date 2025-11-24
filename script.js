@@ -49,6 +49,8 @@
   };
   const escapeHtml = (s = "") =>
     s.replace(/[&<>"']/g, (c) => escapeMap[c]);
+  const escapeAttr = (s = "") =>
+    s.replace(/[&<>"']/g, (c) => escapeMap[c]);
 
   
   // Validate CSS color values to prevent XSS
