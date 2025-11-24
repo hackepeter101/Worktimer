@@ -33,5 +33,5 @@ This little tool keeps track of your workday and shows you exactly how much time
 
 Hope this helps make your workdays a bit more bearable. We're all just trying to make it to 5 PM, right?
 
-Prost! 🍺
+
 Peter
