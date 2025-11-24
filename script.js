@@ -98,6 +98,16 @@
     localStorage.getItem(LS_KEY_LAYOUT) || "big-total";
   const saveLayout = (l) => localStorage.setItem(LS_KEY_LAYOUT, l);
 
+  /* ===== Time Constants ===== */
+  const MS_PER_SECOND = 1000;
+  const MS_PER_MINUTE = 60 * MS_PER_SECOND;
+  const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+  
+  /* ===== UI Update Constants ===== */
+  const TICK_INTERVAL_MS = 1000; // Update UI every second
+  const FOCUS_DELAY_MS = 100; // Delay before focusing elements
+  const SCROLL_DELAY_MS = 100; // Delay before scrolling to element
+  
   /* ===== Notification System Constants ===== */
   const NOTIFICATION_COOLDOWN_MS = 60000; // 1 minute cooldown between notifications
   const MAX_SCHEDULED_NOTIFICATIONS = 10; // Maximum number of scheduled notifications to track
@@ -229,7 +239,7 @@
       if (!nextBreak) return;
 
       const timeToBreak = nextBreak.start - now;
-      const reminderMs = settings.reminderMinutes * 60 * 1000;
+      const reminderMs = settings.reminderMinutes * MS_PER_MINUTE;
       
       // Show notification if we're within the reminder window
       if (timeToBreak <= reminderMs && timeToBreak > (reminderMs - NOTIFICATION_REMINDER_WINDOW_MS)) {
@@ -246,7 +256,7 @@
         }
 
         const breakTime = toHM(nextBreak.start);
-        const minutesUntil = Math.ceil(timeToBreak / 60000);
+        const minutesUntil = Math.ceil(timeToBreak / MS_PER_MINUTE);
         
         this.showNotification('Break Reminder', {
           body: `Your break starts in ${minutesUntil} minute${minutesUntil !== 1 ? 's' : ''} at ${breakTime}`,
@@ -835,9 +845,10 @@
     $("#openThemeEditor", settingsContent)?.addEventListener('click', () => {
       closeSettings();
       // Small delay to allow settings panel to close before opening theme editor
+      const MODAL_TRANSITION_DELAY = 100;
       setTimeout(() => {
         document.getElementById('themeEditorBtn')?.click();
-      }, 100);
+      }, MODAL_TRANSITION_DELAY);
     });
   });
   
@@ -1533,7 +1544,7 @@
       );
       card?.scrollIntoView({ behavior: "smooth", block: "center" });
       card?.querySelector(".inp-name")?.focus();
-    }, 100);
+    }, SCROLL_DELAY_MS);
   }
   $("#addRuleBtn2")?.addEventListener("click", addRule);
 
@@ -1546,6 +1557,18 @@
   const progressBar = $("#progressBar");
   const progressStart = $("#progressStart");
   const progressEnd = $("#progressEnd");
+  
+  // Cache for DOM query results to avoid repeated lookups
+  const domCache = {
+    countdownBig,
+    countdownSmall,
+    labelBig,
+    labelSmall,
+    progressEl,
+    progressBar,
+    progressStart,
+    progressEnd
+  };
 
   const normalizeDays = (str) =>
     (str || "")
@@ -1646,7 +1669,7 @@
   }
 
   function formatDuration(ms) {
-    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const totalSec = Math.max(0, Math.floor(ms / MS_PER_SECOND));
     const h = Math.floor(totalSec / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
@@ -1696,6 +1719,10 @@
         st.rule.name || "Work"
       })`;
 
+      // Update UI using cached DOM elements
+      const { countdownBig, countdownSmall, labelBig, labelSmall, 
+              progressBar, progressEl, progressStart, progressEnd } = domCache;
+
       if (layout === "big-total") {
         if (countdownBig)
           countdownBig.textContent = formatDuration(totalRemain);
@@ -1718,27 +1745,33 @@
       const pct = Math.max(0, Math.min(100, (done / total) * 100));
 
       if (progressBar) progressBar.style.width = pct.toFixed(2) + "%";
-      progressEl?.setAttribute("aria-valuenow", pct.toFixed(0));
+      if (progressEl) progressEl.setAttribute("aria-valuenow", pct.toFixed(0));
       if (progressStart) progressStart.textContent = toHM(st.windowStart);
       if (progressEnd) progressEnd.textContent = toHM(st.windowEnd);
 
       // break style
-      progressEl?.classList.toggle("is-break", st.mode === "break");
-      progressBar?.classList.toggle("is-break", st.mode === "break");
+      const isBreak = st.mode === "break";
+      if (progressEl) progressEl.classList.toggle("is-break", isBreak);
+      if (progressBar) progressBar.classList.toggle("is-break", isBreak);
       
       // Check for break reminders
       NotificationSystem.checkBreakReminder(st, now);
     } else {
+      const { countdownBig, countdownSmall, labelBig, labelSmall, 
+              progressBar, progressEl, progressStart, progressEnd } = domCache;
+              
       if (countdownBig) countdownBig.textContent = "–:–";
       if (labelBig) labelBig.textContent = "Keine aktive/kommende Regel";
       if (countdownSmall) countdownSmall.textContent = "–:–";
       if (labelSmall) labelSmall.textContent = "—";
       if (progressBar) progressBar.style.width = "0%";
-      progressEl?.setAttribute("aria-valuenow", "0");
+      if (progressEl) {
+        progressEl.setAttribute("aria-valuenow", "0");
+        progressEl.classList.remove("is-break");
+      }
       if (progressStart) progressStart.textContent = "–:–";
       if (progressEnd) progressEnd.textContent = "–:–";
-      progressEl?.classList.remove("is-break");
-      progressBar?.classList.remove("is-break");
+      if (progressBar) progressBar.classList.remove("is-break");
     }
 
     const pn = $("#progressNow");
@@ -1842,7 +1875,7 @@
   (async () => {
     // Start timer immediately - don't wait for theme/images
     tick();
-    setInterval(tick, 1000);
+    setInterval(tick, TICK_INTERVAL_MS);
     
     // Theme is now handled by ThemeSystem in index.html
     // Update footer labels

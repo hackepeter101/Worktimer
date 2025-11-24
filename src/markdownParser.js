@@ -3,6 +3,8 @@
  * Converts basic markdown to HTML without external dependencies
  */
 
+'use strict';
+
 window.markdownParser = {
   /**
    * Parse markdown text to HTML
@@ -10,24 +12,16 @@ window.markdownParser = {
    * @returns {string} HTML string
    */
   parse: function(markdown) {
-    if (!markdown) return '';
+    if (!markdown || typeof markdown !== 'string') return '';
     
-    let html = markdown;
-    
-    // Escape HTML first to prevent XSS
-    const escapeMap = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    };
-    
-    // We'll process line by line to handle block elements
-    const lines = html.split('\n');
-    const processedLines = [];
-    let inList = false;
-    let inOrderedList = false;
+    try {
+      let html = markdown;
+      
+      // We'll process line by line to handle block elements
+      const lines = html.split('\n');
+      const processedLines = [];
+      let inList = false;
+      let inOrderedList = false;
     
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i];
@@ -93,6 +87,10 @@ window.markdownParser = {
     }
     
     return processedLines.join('\n');
+    } catch (error) {
+      console.error('Failed to parse markdown:', error);
+      return '<p>Failed to parse content</p>';
+    }
   },
   
   /**
@@ -101,20 +99,27 @@ window.markdownParser = {
    * @returns {string} HTML string
    */
   parseInline: function(text) {
-    // Bold **text** or __text__
-    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    if (!text || typeof text !== 'string') return '';
     
-    // Italic *text* or _text_
-    text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
-    text = text.replace(/_(.+?)_/g, '<em>$1</em>');
-    
-    // Code `text`
-    text = text.replace(/`(.+?)`/g, '<code>$1</code>');
-    
-    // Links [text](url)
-    text = text.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-    
-    return text;
+    try {
+      // Bold **text** or __text__
+      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+      
+      // Italic *text* or _text_
+      text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      text = text.replace(/_(.+?)_/g, '<em>$1</em>');
+      
+      // Code `text`
+      text = text.replace(/`(.+?)`/g, '<code>$1</code>');
+      
+      // Links [text](url)
+      text = text.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      
+      return text;
+    } catch (error) {
+      console.error('Failed to parse inline markdown:', error);
+      return text;
+    }
   }
 };

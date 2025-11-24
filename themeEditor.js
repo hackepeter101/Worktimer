@@ -176,9 +176,10 @@ function openThemeEditor() {
   updateThemeList();
   
   // Focus on theme name input
+  const FOCUS_INPUT_DELAY = 100;
   setTimeout(() => {
     document.getElementById('themeName')?.focus();
-  }, 100);
+  }, FOCUS_INPUT_DELAY);
 }
 
 /**
