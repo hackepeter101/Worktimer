@@ -1081,9 +1081,10 @@
   }
   
   // Full rules editor (simplified inline form)
-  function openFullRulesEditor(ruleId) {
+  function openFullRulesEditor(ruleId, skipSave = false) {
     // Save any unsaved changes from the current editor before opening/refreshing
-    if (currentlyEditingRuleId) {
+    // Skip save when we're intentionally modifying the rule (e.g., adding/deleting breaks)
+    if (currentlyEditingRuleId && !skipSave) {
       saveCurrentRuleFromEditor();
     }
     
@@ -1190,7 +1191,7 @@
       const newBreak = { id: generateUUID(), start: "12:30", end: "13:00" };
       rule.breaks = rule.breaks || [];
       rule.breaks.push(newBreak);
-      openFullRulesEditor(ruleId); // Refresh the editor
+      openFullRulesEditor(ruleId, true); // Refresh the editor, skip save to preserve new break
     });
     
     // Delete break buttons
@@ -1198,7 +1199,7 @@
       btn.addEventListener('click', (e) => {
         const breakId = e.target.closest('.break-edit').dataset.id;
         rule.breaks = rule.breaks.filter(b => b.id !== breakId);
-        openFullRulesEditor(ruleId); // Refresh the editor
+        openFullRulesEditor(ruleId, true); // Refresh the editor, skip save to preserve deletion
       });
     });
   }
