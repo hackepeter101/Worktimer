@@ -34,8 +34,8 @@
   const LS_KEY_THEME = "workday.theme.v2";
 
   /* ===== Days ===== */
-  const dayAbbr = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
-  const weekdayOrder = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+  const dayAbbr = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const weekdayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   /* ===== Helpers ===== */
   const pad = (n) => String(n).padStart(2, "0");
@@ -914,7 +914,7 @@
       const newRule = {
         id: generateUUID(),
         name: "New Rule",
-        days: "Mo,Di,Mi,Do,Fr",
+        days: "Mon,Tue,Wed,Thu,Fri",
         start: "09:00",
         end: "17:00",
         breaks: [],
@@ -1209,7 +1209,7 @@
     {
       id: generateUUID(),
       name: "Default",
-      days: "Mo,Di,Mi,Do,Fr",
+      days: "Mon,Tue,Wed,Thu,Fri",
       start: "09:00",
       end: "17:00",
       breaks: [{ id: generateUUID(), start: "12:30", end: "13:00" }],
@@ -1360,9 +1360,9 @@
       const daysHTML = `
           <div class="days-wrap">
             <div class="days-shortcuts">
-              <button type="button" class="shortcut" data-days="Mo,Di,Mi,Do,Fr">Mo–Fr</button>
-              <button type="button" class="shortcut" data-days="Sa,So">Sa–Su</button>
-              <button type="button" class="shortcut" data-days="Mo,Di,Mi,Do,Fr,Sa,So">All</button>
+              <button type="button" class="shortcut" data-days="Mon,Tue,Wed,Thu,Fri">Mon–Fri</button>
+              <button type="button" class="shortcut" data-days="Sat,Sun">Sat–Sun</button>
+              <button type="button" class="shortcut" data-days="Mon,Tue,Wed,Thu,Fri,Sat,Sun">All</button>
               <button type="button" class="shortcut" data-days="">None</button>
             </div>
             <div class="days-grid">${dayChips}</div>
@@ -1531,8 +1531,8 @@
   function addRule() {
     const newRule = {
       id: generateUUID(),
-      name: "Neue Regel",
-      days: "Mo,Di,Mi,Do,Fr",
+      name: "New Rule",
+      days: "Mon,Tue,Wed,Thu,Fri",
       start: "09:00",
       end: "17:00",
       breaks: [],
